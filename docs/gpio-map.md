@@ -36,11 +36,12 @@ ignored:
 | Refill pump (water → reservoir) | 26 | GPIO out | IRLZ44N + SS34 flyback. Fills the reservoir; never reaches the nest. |
 | Feed pump (syrup → outworld) | 4 | GPIO out | IRLZ44N + SS34 flyback diode |
 | Fan (outworld) | 33 | GPIO out | IRLZ44N + SS34 flyback diode |
+| Nest exhaust fan | 18 | GPIO out | IRLZ44N + SS34 flyback. Gated on **nest** humidity, not outworld. |
 | WS2812B ring data | 23 | RMT | All three riser-mouth rings on **one** data line, chained |
 | Reservoir float switch | 32 | GPIO in | Internal pull-up, switch to ground. **LOW = full.** See polarity note below. |
 | Status LED | 2 | GPIO out | Onboard DevKit LED — heartbeat and fault blink |
 
-Free and unused: 0, 1, 3, 5, 12, 15, 18, 35, 36, 39.
+Free and unused: 0, 1, 3, 5, 12, 15, 35, 36, 39.
 
 ## The float-switch polarity note
 
@@ -99,6 +100,14 @@ every penetration use a proper bulkhead seat or a clamped solvent weld:
   up through frosted ring-windows in the outworld floor
 - IR beam pairs ×3 — mounted at the riser mouths, wiring dropping back into the bay
 
+**Nest ventilation (no ant-accessible mechanism at all):**
+- A mesh-screened exhaust port through the nest ceiling into the bay, with the nest fan mounted
+  on the electronics blade above it.
+- A passive mesh-screened intake low on the nest wall, behind the opaque sleeve.
+- Cross-flow therefore runs bottom to top, along the same axis as the thermal gradient. The only
+  thing inside the nest is stainless mesh, which has nothing to fail — every moving part is on
+  the blade and reachable without opening the colony.
+
 **Not penetrating anything:**
 - The 12 V heat cable is wrapped around the **outside** of the Colony section under an
   insulating sleeve. No seal, no moisture on the heater, no ant contact.
@@ -117,7 +126,8 @@ rather than a tube.
                  ├── refill pump (via MOSFET)
                  ├── feed pump (via MOSFET)
                  └── buck converter 12 V → 5 V ──┬── ESP32 VIN
-                                                 ├── fan (via MOSFET)
+                                                 ├── outworld fan (via MOSFET)
+                                                 ├── nest exhaust fan (via MOSFET)
                                                  ├── WS2812B rings
                                                  └── IR emitters (via enable)
 ```

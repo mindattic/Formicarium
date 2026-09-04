@@ -86,6 +86,7 @@ public sealed class FakeFormicariumClient : IFormicariumClient
                 _actuators.HeaterOn,
                 _actuators.RefillPumpOn,
                 _actuators.FanOn,
+                _actuators.NestFanOn,
                 _simNowUtc,
                 _actuators.Lights);
 
@@ -161,6 +162,7 @@ public sealed class FakeFormicariumClient : IFormicariumClient
         RefillPumpOn = source.RefillPumpOn,
         FeedPumpOn = source.FeedPumpOn,
         FanOn = source.FanOn,
+        NestFanOn = source.NestFanOn,
         RefillWanted = source.RefillWanted,
         Faults = source.Faults,
         ServiceMode = source.ServiceMode
@@ -177,6 +179,7 @@ public sealed class FakeFormicariumClient : IFormicariumClient
         public bool RefillPumpOn { get; private set; }
         public bool FeedPumpOn { get; private set; }
         public bool FanOn { get; private set; }
+        public bool NestFanOn { get; private set; }
         public RgbColor[] Lights { get; private set; } = new RgbColor[riserCount];
 
         public void SetHeater(bool on) => HeaterOn = on;
@@ -187,6 +190,8 @@ public sealed class FakeFormicariumClient : IFormicariumClient
 
         public void SetFan(bool on) => FanOn = on;
 
+        public void SetNestFan(bool on) => NestFanOn = on;
+
         public void SetRiserLights(RgbColor[] colors) => Lights = colors;
 
         public void AllOff()
@@ -195,6 +200,7 @@ public sealed class FakeFormicariumClient : IFormicariumClient
             RefillPumpOn = false;
             FeedPumpOn = false;
             FanOn = false;
+            NestFanOn = false;
             Lights = new RgbColor[riserCount];
         }
     }

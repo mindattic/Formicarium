@@ -17,6 +17,7 @@ namespace Formicarium.Controller.Hardware
         private readonly GpioPin _refillPump;
         private readonly GpioPin _feedPump;
         private readonly GpioPin _fan;
+        private readonly GpioPin _nestFan;
         private readonly GpioPin _statusLed;
         private readonly Ws2812b _rings;
         private readonly int _riserCount;
@@ -31,6 +32,7 @@ namespace Formicarium.Controller.Hardware
             _refillPump = gpio.OpenPin(PinMap.RefillPump, PinMode.Output);
             _feedPump = gpio.OpenPin(PinMap.FeedPump, PinMode.Output);
             _fan = gpio.OpenPin(PinMap.Fan, PinMode.Output);
+            _nestFan = gpio.OpenPin(PinMap.NestFan, PinMode.Output);
             _statusLed = gpio.OpenPin(PinMap.StatusLed, PinMode.Output);
 
             // All three rings are chained on one data line and driven over the ESP32's RMT
@@ -60,6 +62,11 @@ namespace Formicarium.Controller.Hardware
             Write(_fan, on);
         }
 
+        public void SetNestFan(bool on)
+        {
+            Write(_nestFan, on);
+        }
+
         public void SetRiserLights(RgbColor[] colors)
         {
             for (int riser = 0; riser < _riserCount; riser++)
@@ -81,6 +88,7 @@ namespace Formicarium.Controller.Hardware
             Write(_refillPump, false);
             Write(_feedPump, false);
             Write(_fan, false);
+            Write(_nestFan, false);
 
             RgbColor[] dark = new RgbColor[_riserCount];
             SetRiserLights(dark);

@@ -23,6 +23,7 @@ namespace Formicarium.Core.Control
         private readonly SafetyWatchdog _watchdog;
         private readonly HysteresisController _heater;
         private readonly HysteresisController _fan;
+        private readonly HysteresisController _nestFan;
         private readonly HydrationController _hydration;
         private readonly FeedScheduler _feed;
         private readonly LightingController _lighting;
@@ -63,6 +64,16 @@ namespace Formicarium.Core.Control
                 setpoints.HumidityPlausibleMax,
                 setpoints.FanMinOnSeconds,
                 setpoints.FanMinOffSeconds,
+                setpoints.MaxReadingAgeSeconds);
+
+            _nestFan = new HysteresisController(
+                HysteresisMode.ActivateAbove,
+                setpoints.NestFanOnAbovePercentRh,
+                setpoints.NestFanOffBelowPercentRh,
+                setpoints.HumidityPlausibleMin,
+                setpoints.HumidityPlausibleMax,
+                setpoints.NestFanMinOnSeconds,
+                setpoints.NestFanMinOffSeconds,
                 setpoints.MaxReadingAgeSeconds);
 
             _hydration = new HydrationController(setpoints);
@@ -117,6 +128,7 @@ namespace Formicarium.Core.Control
             bool heaterOn;
             bool refillOn;
             bool fanOn;
+            bool nestFanOn;
             bool feedOn;
             RgbColor[] colors;
 
@@ -127,6 +139,7 @@ namespace Formicarium.Core.Control
             {
                 heaterOn = _heater.ForceOff(nowUtc);
                 fanOn = _fan.ForceOff(nowUtc);
+                nestFanOn = _nestFan.ForceOff(nowUtc);
                 refillOn = false;
                 feedOn = false;
                 colors = _darkness;
@@ -145,6 +158,7 @@ namespace Formicarium.Core.Control
 
                 refillOn = _hydration.Update(snapshot.ReservoirFull, snapshot.SoilMoisturePct, nowUtc);
                 fanOn = _fan.Update(snapshot.OutworldHumidityPct, nowUtc);
+                nestFanOn = _nestFan.Update(snapshot.NestHumidityPct, nowUtc);
                 feedOn = _feed.Update(nowUtc);
                 colors = _lighting.Update(snapshot.RiserRatesPerMinute, nowUtc);
 
@@ -152,10 +166,11 @@ namespace Formicarium.Core.Control
                 _actuators.SetRefillPump(refillOn);
                 _actuators.SetFeedPump(feedOn);
                 _actuators.SetFan(fanOn);
+                _actuators.SetNestFan(nestFanOn);
                 _actuators.SetRiserLights(colors);
             }
 
-            return BuildState(snapshot, nowUtc, faults, heaterOn, refillOn, feedOn, fanOn);
+            return BuildState(snapshot, nowUtc, faults, heaterOn, refillOn, feedOn, fanOn, nestFanOn);
         }
 
         /// <summary>Dashboard-triggered sugar-water dose. Rate limited inside the scheduler.</summary>
@@ -176,7 +191,8 @@ namespace Formicarium.Core.Control
             bool heaterOn,
             bool refillOn,
             bool feedOn,
-            bool fanOn)
+            bool fanOn,
+            bool nestFanOn)
         {
             DeviceState state = new DeviceState();
 
@@ -211,6 +227,7 @@ namespace Formicarium.Core.Control
             state.RefillPumpOn = refillOn;
             state.FeedPumpOn = feedOn;
             state.FanOn = fanOn;
+            state.NestFanOn = nestFanOn;
             state.RefillWanted = _hydration.RefillWanted;
             state.ReservoirFull = snapshot.ReservoirFull;
 

@@ -215,6 +215,64 @@ namespace Formicarium.Controller.Tests
         }
 
         [Fact]
+        public void NestExhaustRunsOnNestHumidityNotOutworldHumidity()
+        {
+            FakeSensors sensors;
+            FakeActuators actuators;
+            Setpoints setpoints;
+            ControlLoop loop = Build(out sensors, out actuators, out setpoints);
+
+            // The two fans watch different zones, and it matters which: the nest is deliberately
+            // kept humid, so a nest exhaust driven off outworld air would run more or less
+            // permanently and fight the wicking core.
+            sensors.NestHumidityPct = 90.0;      // mould territory
+            sensors.OutworldHumidityPct = 40.0;  // outworld is fine
+
+            DeviceState state = loop.Tick(T0.AddSeconds(1));
+
+            Assert.True(state.NestFanOn);
+            Assert.False(state.FanOn);
+        }
+
+        [Fact]
+        public void NestExhaustLeavesAHumidNestAloneBelowTheMouldThreshold()
+        {
+            FakeSensors sensors;
+            FakeActuators actuators;
+            Setpoints setpoints;
+            ControlLoop loop = Build(out sensors, out actuators, out setpoints);
+
+            // 70% is where the colony wants to live. Venting here would just pump the reservoir
+            // dry through the ceiling.
+            sensors.NestHumidityPct = 70.0;
+
+            DeviceState state = loop.Tick(T0.AddSeconds(1));
+
+            Assert.False(state.NestFanOn);
+        }
+
+        [Fact]
+        public void NestExhaustStopsWhenItsOwnSensorFails()
+        {
+            FakeSensors sensors;
+            FakeActuators actuators;
+            Setpoints setpoints;
+            ControlLoop loop = Build(out sensors, out actuators, out setpoints);
+
+            sensors.NestHumidityPct = 95.0;
+            loop.Tick(T0.AddSeconds(1));
+            Assert.True(actuators.NestFanOn);
+
+            // Losing SHT31-B means mould risk becomes unmonitored, which is bad - but venting
+            // blind would dry the nest indefinitely, which is worse. Off is the right failure.
+            sensors.AllSensorsFailed = true;
+            DeviceState state = loop.Tick(T0.AddSeconds(400));
+
+            Assert.False(state.NestFanOn);
+            Assert.True(SafetyWatchdog.Has((Faults)state.Faults, Faults.NestHumidityUnusable));
+        }
+
+        [Fact]
         public void TrafficAndLightingAppearInPublishedState()
         {
             FakeSensors sensors;

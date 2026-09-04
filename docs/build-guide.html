@@ -382,6 +382,7 @@ footer { border-top: 1px solid var(--edge); padding-top: 20px; color: var(--ink-
       <div class="spec"><dt>Reservoir</dt><dd>131 <small>mL</small></dd></div>
       <div class="spec"><dt>Heater</dt><dd>20 <small>W at 12&nbsp;V DC</small></dd></div>
       <div class="spec"><dt>Vent mesh</dt><dd>&lt;0.5 <small>mm aperture</small></dd></div>
+      <div class="spec"><dt>Fans</dt><dd>2 <small>outworld + nest</small></dd></div>
       <div class="spec"><dt>Refill interval</dt><dd>3&ndash;4 <small>weeks</small></dd></div>
     </dl>
     <figcaption>
@@ -475,6 +476,47 @@ footer { border-top: 1px solid var(--edge); padding-top: 20px; color: var(--ink-
         both. Separately, a capped port goes into the nest wall now, while the box is empty:
         <em>Tetramorium</em> was chosen because it reaches 1,000&ndash;10,000 workers, and cutting into
         a populated column later is not a plan.
+      </p>
+    </div>
+
+    <div class="decision added">
+      <h3>The electronics are a blade, and the outworld lifts off</h3>
+      <div class="swap"><s>one sealed bay you open in place</s> &rarr; <b>fixed shell + slide-out tray</b></div>
+      <p>
+        The bay cannot itself slide out: its top plate is the outworld floor and its bottom plate is
+        the nest ceiling, both structural and both carrying sealed penetrations. So the shell stays
+        bonded and the electronics ride a tray on rails, out through a gasketed hatch on captive
+        thumbscrews &mdash; chassis and blade, exactly as a server does it. The risers already bypass the
+        bay, so pulling the blade never touches the ant path. The outworld is the mirror image: its
+        floor is welded to the risers and cannot move, so instead the four walls and lid lift off
+        that floor as one unit on a clamped gasket. Cleaning is plug the risers, unclamp, lift, wash.
+      </p>
+    </div>
+
+    <div class="decision added">
+      <h3>The nest is ventilated without ever being opened</h3>
+      <div class="swap"><s>airflow only through the risers</s> &rarr; <b>mesh exhaust + passive intake + fan on the blade</b></div>
+      <p>
+        Three &frac12;&nbsp;in tubes are not ventilation. A Ytong core above 80% RH held at 27&nbsp;&deg;C is a
+        mould risk that the nest humidity sensor could see and nothing could act on. Now a
+        mesh-screened port through the nest ceiling pairs with a passive mesh intake low on the wall,
+        giving bottom-to-top cross-flow along the thermal gradient, with the fan mounted on the
+        blade. Inside the nest there is only stainless mesh, which has nothing to fail &mdash; because
+        once the colony is in, the nest is never opened again.
+      </p>
+    </div>
+
+    <div class="decision cut">
+      <h3>Carved Ytong, not the blue gel</h3>
+      <div class="swap"><s>nutrient gel medium</s> &rarr; <b>carved aerated concrete</b></div>
+      <p>
+        The gel in novelty ant farms is a nutrient agar, and it fails on its own terms here. It
+        <em>is</em> food, so at the 27&nbsp;&deg;C this nest is deliberately held at it moulds within weeks
+        to months. It cannot be rehydrated &mdash; it shrinks and cracks, making it the opposite of a
+        non-collapsing medium. It has no humidity gradient and weeps rather than giving brood a solid
+        chamber floor. And it is incompatible with the wicking reservoir the whole hydration safety
+        argument rests on. Carved Ytong also views <em>better</em>: gel clouds and fractures within
+        months, while a gallery pressed against clear acrylic stays a window for years.
       </p>
     </div>
 
@@ -597,7 +639,8 @@ footer { border-top: 1px solid var(--edge); padding-top: 20px; color: var(--ink-
           <tr><td><span class="pin">25</span></td><td>Heater</td><td class="mono">out</td><td>IRLZ44N, 150&nbsp;&Omega; gate, 10&nbsp;k&Omega; pulldown</td></tr>
           <tr><td><span class="pin">26</span></td><td>Refill pump</td><td class="mono">out</td><td>Fills the reservoir. Never reaches the nest.</td></tr>
           <tr><td><span class="pin">4</span></td><td>Feed pump</td><td class="mono">out</td><td>Sugar water to the outworld dish</td></tr>
-          <tr><td><span class="pin">33</span></td><td>Fan</td><td class="mono">out</td><td>Flyback diode across the fan</td></tr>
+          <tr><td><span class="pin">33</span></td><td>Fan &mdash; outworld</td><td class="mono">out</td><td>Gated on outworld humidity (SHT31-A)</td></tr>
+          <tr><td><span class="pin">18</span></td><td>Fan &mdash; nest exhaust</td><td class="mono">out</td><td>Gated on <strong>nest</strong> humidity (SHT31-B). A mould guard, set high.</td></tr>
           <tr><td><span class="pin hot">32</span></td><td>Reservoir float switch</td><td class="mono">in, pull-up</td><td><strong>LOW = full.</strong> See below.</td></tr>
           <tr><td><span class="pin">23</span></td><td>WS2812B ring data</td><td class="mono">RMT</td><td>All three rings chained on one line</td></tr>
           <tr><td><span class="pin">2</span></td><td>Status LED</td><td class="mono">out</td><td>Heartbeat, so a locked-up controller is visible</td></tr>
@@ -814,6 +857,7 @@ footer { border-top: 1px solid var(--edge); padding-top: 20px; color: var(--ink-
           <tr><td>MOSFETs</td><td>Each output switches a dummy load; all off at boot</td><td>A missing 10&nbsp;k&Omega; pulldown shows up as an output on during reset</td></tr>
           <tr><td>Beams</td><td>Wave a card through each; counts increment independently</td><td>A high debounced-count ratio means dirty or misaligned optics</td></tr>
           <tr><td>Rings</td><td>Each ring lights its own channel colour</td><td>All three lit the same means the chain order does not match riser order</td></tr>
+          <tr><td>Nest exhaust</td><td>Airflow at the ceiling port with the intake unblocked</td><td>No flow usually means the intake mesh is sealed against the sleeve</td></tr>
         </tbody>
       </table>
     </div>
@@ -897,6 +941,9 @@ const PHASES = [
     ["Drill the three riser holes in the outworld floor and the nest ceiling, to the tube OD.", "Step drill, slow speed, backing board. Acrylic cracks if the bit grabs."],
     ["Cut six collar washers from offcut.", "Two per riser: one against each face of each panel."],
     ["Drill the bay top and bottom plates for cable glands, and the nest wall for the capped expansion port.", "All flat surfaces — that is the point of the square section."],
+    ["Cut the nest ceiling exhaust port and the low nest-wall intake port, and screen both with stainless mesh.", "Under 0.5 mm aperture. This is the only ventilation the nest will ever get, and you cannot add it later."],
+    ["Rebate the outworld floor perimeter for the shell gasket and fit the toggle clamps.", "The outworld has to come off for cleaning without disturbing the riser welds beneath it."],
+    ["Build the electronics blade: rails, tray, gasketed face plate, rear JST block.", "Test that it slides fully out and back before anything is soldered to it."],
     ["Solvent-weld the nest section: four walls plus base, Weld-On 4.", "Clamp square and let it cure fully. This is the containment boundary."],
     ["Weld the risers through the outworld floor and nest ceiling, collar each side, fillet with Weld-On 16.", "Clamp while curing. This is the one joint that cannot be allowed to leak."],
     ["Weld the bay walls to its own two plates, leaving the side access panel as a gasketed opening.", "You will need this panel again every time the ESP32 is reflashed."],
@@ -920,7 +967,7 @@ const PHASES = [
   ]],
   ["Assembly", [
     ["Transfer the breadboard circuit to perfboard with screw terminals and JST pigtails.", "Every module should disconnect without cutting anything."],
-    ["Mount the perfboard, both pumps and the rings in the bay; align rings under the ring-windows.", "The rings never cross the boundary — only their light does."],
+    ["Mount the perfboard, both pumps, the nest exhaust fan and the rings on the blade; align rings under the ring-windows.", "The rings never cross the boundary — only their light does."],
     ["Wrap the heat cable around the outside of the nest section and sleeve it.", "No penetration, no moisture on the heater, no ant contact."],
     ["Run the nest bundle down through the bay floor and the outworld bundle up through its ceiling.", "Service loop and a clamp at both ends of every run."],
     ["Stack the modules, gasket and clamp the flanges.", "Hand tight and even. You are compressing a gasket, not making a press fit."],

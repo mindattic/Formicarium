@@ -44,6 +44,7 @@ public sealed class DeviceState
     public bool RefillPumpOn { get; set; }
     public bool FeedPumpOn { get; set; }
     public bool FanOn { get; set; }
+    public bool NestFanOn { get; set; }
     public bool RefillWanted { get; set; }
 
     public int Faults { get; set; }

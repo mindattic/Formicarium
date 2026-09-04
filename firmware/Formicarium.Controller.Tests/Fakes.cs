@@ -115,6 +115,7 @@ namespace Formicarium.Controller.Tests
         public bool RefillPumpOn { get; private set; }
         public bool FeedPumpOn { get; private set; }
         public bool FanOn { get; private set; }
+        public bool NestFanOn { get; private set; }
         public RgbColor[] Lights { get; private set; } = new RgbColor[0];
 
         public int AllOffCalls { get; private set; }
@@ -162,6 +163,16 @@ namespace Formicarium.Controller.Tests
             FanOn = on;
         }
 
+        public void SetNestFan(bool on)
+        {
+            if (on != NestFanOn)
+            {
+                Journal.Add("nestFan=" + on);
+            }
+
+            NestFanOn = on;
+        }
+
         public void SetRiserLights(RgbColor[] colors)
         {
             Lights = colors;
@@ -174,6 +185,7 @@ namespace Formicarium.Controller.Tests
             RefillPumpOn = false;
             FeedPumpOn = false;
             FanOn = false;
+            NestFanOn = false;
             Lights = new RgbColor[0];
         }
 

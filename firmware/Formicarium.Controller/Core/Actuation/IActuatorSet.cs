@@ -49,7 +49,15 @@ namespace Formicarium.Core.Actuation
         /// <summary>Sugar water into the outworld dish. A separate pump and line: different fluids cannot share either.</summary>
         void SetFeedPump(bool on);
 
+        /// <summary>Outworld circulation fan, in the lid.</summary>
         void SetFan(bool on);
+
+        /// <summary>
+        /// Nest exhaust fan, in the electronics bay, pulling nest air through a mesh-screened
+        /// ceiling port. A mould guard rather than a climate control - the colony wants the nest
+        /// humid, and the wicking core is continuously replacing what this removes.
+        /// </summary>
+        void SetNestFan(bool on);
 
         /// <summary>One colour per riser mouth, indexed by riser.</summary>
         void SetRiserLights(RgbColor[] colors);

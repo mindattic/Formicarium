@@ -12,7 +12,7 @@ the dashboard runs the real firmware policy against a colony simulator.
 
 ```
 docs/
-  build-guide.html      single-file build manual: 3D blueprint, drawings, 33-step sequence
+  build-guide.html      single-file build manual: 3D blueprint, drawings, 36-step sequence
   bom.md                parts, sourcing, and every part that was cut with the reason
   gpio-map.md           canonical pin assignment — the single source of truth
 firmware/
@@ -20,7 +20,7 @@ firmware/
     Core/               hardware-free control logic. Shared verbatim with the tests.
     Hardware/           the only code that knows what a GPIO is
     Net/                HTTP API + a small self-hosted fallback page
-  Formicarium.Controller.Tests/   55 tests, desktop, no ESP32 required
+  Formicarium.Controller.Tests/   58 tests, desktop, no ESP32 required
 dashboard/
   Formicarium.Dashboard/          Blazor Server + SQLite telemetry log
 ```
@@ -50,7 +50,7 @@ missing from the nanoFramework base class library.
 ## Running it
 
 ```bash
-dotnet test Formicarium.slnx                          # 55 control-logic tests
+dotnet test Formicarium.slnx                          # 58 control-logic tests
 dotnet run --project dashboard/Formicarium.Dashboard  # dashboard against the simulator
 pwsh firmware/build-firmware.ps1                      # firmware -> deployable .pe image
 ```
@@ -117,6 +117,9 @@ real bindings, which rules out wrong types and wrong signatures, but not wrong b
    tell a closed gate from a stuck one. Three always-open risers replace it; service closure is a
    manual plug cap.
 7. Boot state is every output off, and nothing energises until some sensor has read successfully.
+8. The two fans watch different zones. The nest exhaust is gated on *nest* humidity and set high,
+   because it is a mould guard, not a climate control — the colony wants a humid nest and the
+   wicking core continuously replaces what the fan removes.
 
 ## The experiment
 

@@ -14,7 +14,7 @@ A single rigid **square-section column**, stacked bottom to top:
         |    o    ~~~~            |   around each riser mouth
    [][] |=========================|   <- bay ceiling / outworld floor
    [][] |   ELECTRONICS BAY       |   RGB rings shine UP through the floor
-   [][] |   [ side access panel ] |   thermal break at its own floor
+   [][] |   [ slide-out blade    ] |   thermal break at its own floor
    [][] |=========================|   <- bay floor / nest ceiling
     ^^  |:::::::::::::::::::::::::|
     ||  |::  YTONG NEST CORE    ::|   opaque sleeve lifts off to view
@@ -88,8 +88,11 @@ friction fit to work loose, and on a flat face it can be clamped while curing.
 | Closed-cell gasket sheet | 1 | | Module flanges, bay access panel |
 | Opaque sleeve stock (thin ply, ABS, or vinyl wrap) | 1 | | **Lifts off to view the nest.** See below. |
 | Ballast plate + base stock, ~14–16" square | 1 | | Footprint at least 0.6 × overall height |
-| Thumbscrews / captive fasteners | ~12 | | Module clamps, bay access panel |
-| Stainless mesh, under 0.5 mm aperture | small | | Lid venting. Tetramorium pass anything larger. |
+| Thumbscrews / captive fasteners | ~12 | | Blade face plate, outworld clamps |
+| Toggle clamps or knurled thumbscrews | 4-6 | | Compress the outworld gasket. Must be releasable by hand, with the column in place. |
+| Drawer slides or acrylic angle rail | 1 pair | | The electronics blade. Aluminium micro-slides or a simple acrylic channel both work at this weight. |
+| JST bulkhead connector block | 1 | | Blade harness lands here so the tray disconnects in one motion |
+| Stainless mesh, under 0.5 mm aperture | small | | Lid vent, nest ceiling exhaust port, nest wall intake port. Tetramorium pass anything larger. |
 | Riser plug caps | 3 | | **Manual** service closure — deliberately not powered |
 | Shallow tray (moat) | 1 | | Whole column stands in it. Last line of containment. |
 | [byFormica PTFE Plus Fluon](https://www.amazon.com/byFormica-Insect-Escape-Prevention-Coating/dp/B0FBKSRJFG) | 1 | | Band on the inner wall below the lid rim |
@@ -114,7 +117,7 @@ friction fit to work loose, and on a flat face it can be clamped while curing.
 | [Adafruit SHT31-D breakout](https://www.adafruit.com/product/2857) | **2** | 0x44 outworld, 0x45 nest — see below |
 | [DFRobot Gravity capacitive soil moisture sensor](https://www.amazon.com/DFROBOT-Gravity-Capacitive-Corrosion-Resistant/dp/B01GHY0N4K) | 1 | In the Ytong core. Must be on ADC1. |
 | [Adafruit IR break beam, 3 mm LEDs](https://www.adafruit.com/product/2167) | **3** | One pair per riser |
-| [IRLZ44N logic-level MOSFETs, 5-pack](https://www.amazon.com/Bestol-5PCS-IRLZ44N-MOSFET-220AB/dp/B07DWYGNHC) | 1 | 4 used: heater, refill pump, feed pump, fan |
+| [IRLZ44N logic-level MOSFETs, 5-pack](https://www.amazon.com/Bestol-5PCS-IRLZ44N-MOSFET-220AB/dp/B07DWYGNHC) | 1 | All 5 used: heater, refill pump, feed pump, outworld fan, nest exhaust fan |
 | WS2812B / NeoPixel rings, ~12 px | 3 | One per riser mouth. Chained on one data line over ESP32 RMT. |
 
 ## Power, climate, camera
@@ -122,7 +125,7 @@ friction fit to work loose, and on a flat face it can be clamped while curing.
 | Item | Qty | Notes |
 |---|---|---|
 | 12 V DC silicone heating cable, ~20 W | 1 | **Replaces the AC heat cable.** Wraps the outside of the nest section — no penetration at all. |
-| [Gdstime 40 mm 5 V fan](https://www.amazon.com/Gdstime-40mm-Small-Brushless-Cooling/dp/B00MYZADCY) | 1 | Outworld circulation, RH-gated |
+| [Gdstime 40 mm 5 V fan](https://www.amazon.com/Gdstime-40mm-Small-Brushless-Cooling/dp/B00MYZADCY) | **2** | One outworld circulation, one nest exhaust. Both RH-gated, on different zones. |
 | 12 V 3 A PSU | 1 | Single supply for the whole column |
 | Buck converter 12 V to 5 V (MP1584 / LM2596) | 1 | Feeds ESP32, fan, LEDs, IR emitters |
 | IR-capable ONVIF / RTSP IP camera | 1 | **Replaces the ESP32-CAM** |
@@ -133,9 +136,9 @@ friction fit to work loose, and on a flat face it can be clamped while curing.
 | Item | Qty | Notes |
 |---|---|---|
 | 4.7 kOhm resistor | 1 | **Mandatory** 1-Wire pull-up. Without it no probe enumerates. |
-| 150 Ohm resistor | 4 | MOSFET gate resistors |
-| 10 kOhm resistor | 4 | Gate pulldowns — hold every output off through boot |
-| SS34 / 1N5819 Schottky diode | 3 | Flyback across both pumps and the fan |
+| 150 Ohm resistor | 5 | MOSFET gate resistors |
+| 10 kOhm resistor | 5 | Gate pulldowns — hold every output off through boot |
+| SS34 / 1N5819 Schottky diode | 4 | Flyback across both pumps and both fans |
 | Perfboard + screw terminals | 1 | Final wiring |
 | JST pigtails | ~8 | So every module disconnects for service |
 | Bulkhead fittings / glands | ~10 | Bay top and bottom plate penetrations — all flat |
@@ -209,6 +212,47 @@ A block of aerated concrete cut to the box section, with galleries carved into t
 sits against the acrylic — so every chamber is visible, and moisture is uniform rather than the
 soil probe reading one arbitrary point of loose fill. Ytong also wicks, which is what makes the
 passive reservoir work.
+
+### Serviceability: a blade, a lift-off shell, and a nest that never opens
+
+Three different problems, three different answers, all driven by the same rule: **the nest is
+never opened once the colony is in, so everything that might need attention has to be reachable
+from outside it.**
+
+**The electronics are a blade, not a module.** The bay's top plate is the outworld floor and its
+bottom plate is the nest ceiling — both structural, both carrying sealed penetrations — so the bay
+itself cannot slide out without the column coming apart. Instead the shell stays bonded and the
+electronics ride a tray on rails, out through a gasketed front hatch on captive thumbscrews. The
+harness lands on one JST block at the rear plus enough service loop to set the tray beside the
+column while still live. The risers already bypass the bay, so pulling the blade never touches the
+ant path.
+
+**The outworld shell lifts off a fixed floor.** The risers are solvent-welded through the outworld
+floor, so the floor cannot move — but it does not need to. The four walls and lid come off as one
+unit, seating on a continuous gasket in a shallow rebate and compressed by toggle clamps. Cleaning
+is: plug the three risers with the manual caps, unclamp, lift the shell, wash it, reseat. No weld
+ever moves and the riser mouths and ring-windows stay exactly where they were.
+
+**The nest is ventilated without ever being opened.** Three ½ in risers are not airflow. A Ytong
+core above 80% RH held at 27 °C is a mould risk that the nest humidity sensor can see and nothing
+could act on, so there is now a mesh-screened exhaust port through the nest ceiling with a fan on
+the blade, and a passive mesh intake low on the nest wall behind the sleeve. Cross-flow runs bottom
+to top, along the thermal gradient. Inside the nest there is only stainless mesh, which has nothing
+to fail; every moving part is on the blade.
+
+### Why not the blue gel
+
+The blue gel sold in novelty ant farms is a nutrient agar, and it fails on its own terms here.
+
+It *is* food, so at the 27 °C this nest is deliberately held at, it moulds — reliably, within weeks
+to months. It cannot be rehydrated: it shrinks and cracks as it dries, which makes it the opposite
+of a non-collapsing medium. It offers no humidity gradient and weeps rather than giving brood a
+solid chamber floor. It is sold for a handful of queenless workers on a desk, not as a growth
+substrate for a queen-headed colony intended to reach thousands. And it is incompatible with the
+wicking reservoir that the entire hydration safety argument rests on.
+
+Carved Ytong gives better visibility than gel anyway, because gel clouds and fractures within
+months while a carved gallery pressed against clear acrylic stays a clear window for years.
 
 ### An opaque sleeve over the nest — the flaw this fixes
 

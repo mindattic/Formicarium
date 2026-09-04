@@ -68,7 +68,11 @@ namespace Formicarium.Core.State
         public bool RefillPumpOn { get; set; }
 
         public bool FeedPumpOn { get; set; }
+        /// <summary>Outworld circulation fan.</summary>
         public bool FanOn { get; set; }
+
+        /// <summary>Nest exhaust fan. A mould guard, gated on nest airspace humidity.</summary>
+        public bool NestFanOn { get; set; }
 
         /// <summary>Reservoir is below full. Differs from RefillPumpOn while the cooldown holds it back.</summary>
         public bool RefillWanted { get; set; }

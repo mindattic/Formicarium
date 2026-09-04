@@ -28,7 +28,7 @@ straight bypass risers running up the *outside* of the bay to connect nest to ou
    |    o    ~~~~                  |  one around each riser mouth
 [] |===============================|
 [] |      ELECTRONICS BAY          |  sealed; RGB rings shine UP through the floor
-[] |      [ side access panel ]    |  thermal break at its own floor
+[] |      [ slide-out blade   ]    |  thermal break at its own floor
 [] |===============================|
 ^^ |:::::::::::::::::::::::::::::::|
 || |::   YTONG NEST CORE         ::|  opaque sleeve lifts off to view
@@ -51,6 +51,9 @@ Three properties drove this shape, and each one killed an earlier design:
 - **Every sealed joint lands on a flat surface.** An O-ring cannot seat on a curve and a riser
   welded to a curved wall cannot be clamped while it cures, which is why the column is square
   rather than the cylinder it started as.
+- **Nothing that can fail sits where it cannot be reached.** The medium is carved Ytong rather than
+  loose fill or gel: rigid galleries cannot subside, moisture is uniform, and it wicks — which is
+  what makes passive hydration work at all.
 
 Fluon (PTFE) on the inner wall below the lid rim is the escape barrier, and it is non-negotiable
 given how small *Tetramorium* workers are. The whole column stands in a shallow moat tray as a
@@ -68,8 +71,18 @@ with no actuator on that leg at all. The reservoir is smaller than a dose that c
 colony, so no pump failure matters. Refilling keys off a float switch rather than the soil probe,
 so a dead probe leaves the colony hydrated but unmonitored instead of unwatered.
 
-**Circulation.** A 5 V fan in the lid, gated on outworld humidity, not run continuously —
-constant airflow would dry the nest through the risers.
+**Circulation.** Two fans on two zones. One in the lid gated on outworld humidity; one on the
+electronics blade drawing nest air out through a mesh-screened ceiling port, gated on *nest*
+humidity and set high, because it is a mould guard rather than a climate control — the colony wants
+a humid nest and the wicking core continuously replaces what the fan removes. A passive mesh intake
+low on the nest wall completes bottom-to-top cross-flow along the thermal gradient. Nothing
+mechanical sits inside the nest.
+
+**Serviceability.** The nest is never opened once the colony is in, so everything else is built to
+be reached from outside it. The electronics ride a slide-out blade behind a gasketed hatch — the bay
+shell has to stay bonded, since its two plates are the outworld floor and the nest ceiling. The
+outworld's four walls and lid lift off a fixed floor on a clamped gasket for cleaning, with the
+riser welds and ring-windows staying put in that floor; the three manual riser plugs go in first.
 
 **Traffic and light.** One IR break-beam per riser, debounced, feeding a rolling rate. Each riser
 mouth is lit from below in one of the red/green/blue channels at a brightness tracking its own
@@ -100,6 +113,7 @@ so the simulator drives the genuine control loop rather than a second implementa
 
 ## Where things stand
 
-Nothing is ordered. The pin map, parts list, firmware, dashboard and build guide are complete;
-55 control-logic tests pass on the desktop. Remaining work is physical: build it, work through the
-bring-up order in the guide, run it empty for two weeks, then introduce the colony.
+Nothing is ordered. The pin map, parts list, firmware, dashboard and build guide are complete.
+The firmware compiles to a deployable image and 58 control-logic tests pass on the desktop, though
+it has never run on an ESP32. Remaining work is physical: build it, work through the bring-up order
+in the guide, run it empty for two weeks, then introduce the colony.

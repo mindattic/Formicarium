@@ -50,6 +50,17 @@ namespace Formicarium.Core.Config
         public const int FeedPump = 4;     // sugar water -> outworld dish
         public const int Fan = 33;         // outworld circulation
 
+        /// <summary>
+        /// Nest exhaust fan. Sits in the sealed electronics bay and draws nest air up through a
+        /// mesh-screened port in the nest ceiling, with a passive mesh intake low on the nest
+        /// wall giving bottom-to-top cross-flow along the thermal gradient.
+        ///
+        /// The nest is never opened once the colony is in, so ventilation had to be something
+        /// serviceable entirely from outside it. Everything mechanical here is on the electronics
+        /// blade; the only thing inside the nest is stainless mesh, which has nothing to fail.
+        /// </summary>
+        public const int NestFan = 18;
+
         // --- Reservoir level ------------------------------------------------------------
         // Float switch wired to ground and read against the internal pull-up, so LOW means the
         // float has risen and the reservoir is full.

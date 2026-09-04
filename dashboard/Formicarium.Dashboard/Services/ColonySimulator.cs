@@ -86,10 +86,10 @@ public sealed class ColonySimulator
     public bool ReservoirFull =>
         !SimulateStuckFloatSwitch && _reservoirMl >= ReservoirCapacityMl * 0.95;
 
-    public void Step(double seconds, bool heaterOn, bool refillOn, bool fanOn, DateTime simNowUtc, RgbColor[] lights)
+    public void Step(double seconds, bool heaterOn, bool refillOn, bool fanOn, bool nestFanOn, DateTime simNowUtc, RgbColor[] lights)
     {
         StepThermal(seconds, heaterOn, fanOn);
-        StepHydration(seconds, refillOn, fanOn);
+        StepHydration(seconds, refillOn, fanOn, nestFanOn);
         StepTraffic(seconds, simNowUtc, lights);
     }
 
@@ -113,7 +113,7 @@ public sealed class ColonySimulator
         _outworldC += (outworldTarget - _outworldC) / 600.0 * seconds;
     }
 
-    private void StepHydration(double seconds, bool refillOn, bool fanOn)
+    private void StepHydration(double seconds, bool refillOn, bool fanOn, bool nestFanOn)
     {
         // Two loops, deliberately at very different speeds.
         //
@@ -142,7 +142,10 @@ public sealed class ColonySimulator
 
         _soilPct = Math.Clamp(_soilPct, 0.0, 100.0);
 
-        double nestRhTarget = 45.0 + _soilPct * 0.45;
+        // The nest exhaust fan pulls humid air out through the ceiling port. It shifts the
+        // target down rather than the value directly, because a saturated Ytong core keeps
+        // re-humidifying the airspace - which is exactly why the fan needs a long dwell.
+        double nestRhTarget = 45.0 + _soilPct * 0.45 - (nestFanOn ? 14.0 : 0.0);
         _nestRh += (nestRhTarget - _nestRh) / 300.0 * seconds;
 
         // The outworld sits above the nest and shares air with it through three open risers, so

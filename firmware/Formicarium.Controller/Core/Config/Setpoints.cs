@@ -94,6 +94,21 @@ namespace Formicarium.Core.Config
         public int FanMinOnSeconds { get; set; } = 30;
         public int FanMinOffSeconds { get; set; } = 30;
 
+        // Nest exhaust, gated on nest airspace humidity (SHT31-B) rather than the outworld.
+        // Thresholds sit high: this is a mould guard, not a climate control. The colony wants a
+        // humid nest, and the wicking core is continuously replacing what this removes, so
+        // running it any lower would just fight the reservoir and waste water.
+        public double NestFanOnAbovePercentRh { get; set; } = 82.0;
+        public double NestFanOffBelowPercentRh { get; set; } = 74.0;
+
+        /// <summary>
+        /// Longer dwell than the outworld fan. Nest humidity moves slowly because a saturated
+        /// Ytong core is a large reservoir of moisture, so short cycles would achieve nothing but
+        /// wear.
+        /// </summary>
+        public int NestFanMinOnSeconds { get; set; } = 120;
+        public int NestFanMinOffSeconds { get; set; } = 300;
+
         // --- Feeding ---------------------------------------------------------------------
         // Sugar water only. Protein feeding stays manual by design.
         public int FeedHourLocal { get; set; } = 9;
