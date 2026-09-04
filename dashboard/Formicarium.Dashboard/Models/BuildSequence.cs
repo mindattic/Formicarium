@@ -70,8 +70,8 @@ public static class BuildSequence
             ("Bond the spine assembly onto the nest section.",
              "Nest ceiling to nest walls, continuous fillet. After this the column is one piece from the base to the outworld floor."),
 
-            ("Cut the two Ytong slabs to the internal section and carve the galleries into the outward face of each.",
-             "A spoon works. Back to back they read from two opposite walls, so every chamber you carve is a chamber you can watch."),
+            ("Halve the AAC block, trim both pieces to 10.5 × 7.75 in, and carve the galleries into the outward face of each.",
+             "One standard 24 × 8 × 4 in block makes both slabs. A spoon works. Back to back they read from two opposite walls, so every chamber you carve is a chamber you can watch."),
 
             ("Cut the reservoir well and set the core so one foot of it stands in the well.",
              "That foot is the wick. Nothing pumps into the nest — the core draws."),

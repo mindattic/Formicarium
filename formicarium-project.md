@@ -57,9 +57,11 @@ Four properties drive this shape:
   welded to a curved wall cannot be clamped while it cures, which is why the section is square.
 
 The medium is carved Ytong rather than loose fill or gel: rigid galleries cannot subside, moisture
-is uniform, and it wicks — which is what makes passive hydration work at all. Two 100 mm slabs sit
-back to back with galleries carved into the outward face of each, so the nest reads from two
-opposite walls.
+is uniform, and it wicks — which is what makes passive hydration work at all. One standard
+24 × 8 × 4 in AAC block, halved and trimmed, makes both slabs; they sit back to back with galleries
+carved into the outward face of each, so the nest reads from two opposite walls. Sourcing a single
+block in the US is the build's one real supply problem — see [`docs/bom.md`](docs/bom.md), and note
+that K-23 firebrick is *not* an acceptable substitute here.
 
 Fluon (PTFE) on the inner wall below the lid rim is the escape barrier, and it is non-negotiable
 given how small *Tetramorium* workers are. The whole column stands in a shallow moat tray as a last

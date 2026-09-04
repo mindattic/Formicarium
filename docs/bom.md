@@ -89,8 +89,8 @@ and it is the main reason the column is square.
    riser welded to a curved wall cannot be clamped while it cures.
 2. **Sourcing.** Large-bore cast acrylic tube is a specialty, cut-to-order, sold-by-the-foot item.
    Flat ¼ in cast acrylic sheet is a commodity.
-3. **The Ytong core.** Turning a block of aerated concrete to fit a bore is real work. Cutting it to
-   fit a square box is a saw cut.
+3. **The Ytong core.** Turning a block of aerated concrete to fit a bore is real work. Cutting a
+   standard block to fit a square box is two saw cuts.
 4. **The camera.** Curved acrylic distorts; flat faces do not.
 
 The honest cost is four longitudinal seams where a tube has none. Flat-panel solvent welding is the
@@ -136,7 +136,7 @@ a quote.
 | *Tetramorium immigrans* colony | 1 | **$28.99** | ✔ statesideants.com |
 | Acrylic tube, ¾" OD × ⅛" wall | 2 ft | **$1.10/ft — $2.20** + cutting | ✔ canalplastic.com |
 | Cast acrylic sheet, ¼", cut to size | ~9 sq ft | ~$75–110 | ~ est. $8–12/sq ft cut-to-size |
-| AAC / Ytong block | 1 block | ~$20–60 | ~ **see the sourcing risk below** |
+| AAC block, 24 × 8 × 4 in | 1 | ~$20–60 | ~ **see the sourcing note below** |
 | Kamoer NKP peristaltic pump | 2 | ~$35 ea — $70 | ~ est. |
 | IR ONVIF / RTSP IP camera | 1 | ~$35 | ~ est. |
 | Weld-On 4 + Weld-On 16 | 1 ea | ~$25 | ~ est. |
@@ -159,14 +159,21 @@ a quote.
 **Planning total: roughly $560–640**, excluding tools. Two lines dominate it — the acrylic sheet and
 the pair of peristaltic pumps — and between them they are about a third of the build.
 
-### Sourcing risk: the AAC block
+### Sourcing the nest core
 
 This is the one part that could actually stop the build, and it is the nest core.
 
-Raw autoclaved aerated concrete is a commodity in Europe and **genuinely hard to buy in small
-quantities in the United States** — most US builders moved away from it, so the domestic
-manufacturers that exist ([Aercon](https://aerconaac.com/), [Litecon](https://liteconusa.com/))
-sell by the pallet, and a pallet runs into the hundreds of dollars for a part worth about $30.
+**The good news: one standard block is exactly enough.** The commodity 4 in AAC block is
+**24 × 8 × 4 in** (600 × 200 × 100 mm). Cut it in half and you get two 12 × 8 × 4 in pieces; trim
+each to 10.5 × 7.75 in and they are the two slabs this core is made of. The block's 4 in width is
+the slab thickness as sold, two slabs back to back fill the 8 in internal section exactly, and
+7.75 in leaves a quarter inch of clearance across. One block, two cuts, almost no waste.
+
+**The bad news is buying one.** Raw autoclaved aerated concrete is a commodity in Europe and
+**genuinely hard to buy in small quantities in the United States** — most US builders moved away
+from it, so the domestic manufacturers that exist ([Aercon](https://aerconaac.com/),
+[Litecon](https://liteconusa.com/)) sell by the pallet, and a pallet runs into the hundreds of
+dollars for a part worth about $30.
 
 What the ant-keeping market sells instead is *finished* Ytong nests
 ([Esthetic Ants via American Ant Supply](https://americanantsupply.com/products/copy-of-esthetic-ants-small-ytong-type-b),
@@ -176,15 +183,33 @@ a substitute.
 
 So, in order of preference:
 
-1. **eBay, or a local masonry supplier willing to break a pallet.** A single block is all that is
-   needed and it cuts with a hand saw.
-2. **A US AAC manufacturer's sample or offcut**, asked for directly.
-3. **Fall back to a poured medium** — hydrostone, or a plaster and sand mix. It wicks, it is rigid,
-   and it pours to any dimension, which removes the sourcing problem entirely. It is heavier and
-   cannot be re-carved, and this design has not been checked against it.
+1. **eBay.** This is where ant keepers actually get AAC in the US, in single blocks. It cuts with a
+   hand saw.
+2. **Aercon direct.** Keepers report emailing them and being sold material; worth an email before
+   paying eBay shipping on a masonry block. A local supplier willing to break a pallet is the same
+   idea.
+3. **Pour the core instead** — hydrostone, or a plaster and sand mix. It wicks, it is rigid, and it
+   pours to any dimension, which removes the sourcing problem entirely. It is heavier and cannot be
+   re-carved, and this design has not been checked against it, so it is a fallback rather than an
+   equal option.
 
 **Settle this before cutting any acrylic.** Every internal dimension in the build is set by the
 core, and the column is not worth building without one.
+
+### Not firebrick
+
+K-23 insulating firebrick is the substitute the US ant-keeping forums reach for first, and on the
+face of it it is ideal: soft enough to carve with a plastic spoon, aerated, and it disperses water
+evenly. **Do not use it here.**
+
+Keepers report that it produces an extremely fine dust, and that colonies held in firebrick nests
+for extended periods go sluggish and die without another explanation. This column is built around a
+colony that is meant to reach thousands of workers over one to two years in a nest that is *never
+opened again* — which is precisely the exposure firebrick is reported to fail at. The standard
+K-23 brick is also only 9 × 4.5 × 2.5 in, so it could not make this core in one piece anyway.
+
+It is recorded here because it is the obvious wrong turn, and the reason it is wrong is slow enough
+that it would not be visible until the colony was established.
 
 ### Two other gaps worth naming
 
@@ -206,7 +231,7 @@ core, and the column is not worth building without one.
 | Clear acrylic tube, ¾" OD × ⅛" wall | 24" | [Canal Plastics](https://www.canalplastic.com/products/clear-colorless-acrylic-tube) — **$1.10/ft ✔**, sold in 12/24/36/72" lengths, cut to order | Three load-bearing risers. An ⅛" wall on ¾" OD gives exactly the ½" bore this design wants — confirmed on their spec table. The only specialty part in the build. |
 | Acrylic offcut for collars | scrap | from the sheet | Twelve collars, 2" OD — four per riser |
 | Weld-On 16 (thickened) + Weld-On 4 (thin) | 1 ea | Amazon / TAP | 4 for panel seams, 16 for collar fillets |
-| Ytong / autoclaved aerated concrete, 100 mm slab | 2 | eBay, or a masonry supplier willing to break a pallet — **read the sourcing risk above** | The nest core, set back to back. Galleries carved into the outward face of each, so the nest reads from two opposite walls. Hardest part in the build to buy; settle it first. |
+| Ytong / autoclaved aerated concrete block, 24 × 8 × 4 in | **1** | eBay, or [Aercon](https://aerconaac.com/) direct — **read the sourcing note above** | The nest core. One standard block, cut in half and trimmed to two 10.5 × 7.75 × 4 in slabs set back to back, galleries carved into the outward face of each. Hardest part in the build to buy; settle it first. |
 | Drawer rails, 4" travel ball-bearing | 1 pair | [uxcell 4" full-extension](https://www.amazon.com/uxcell-4-inch-Sections-Telescoping-Bearing/dp/B01MY4IDEK), or [Rockler mini slides](https://www.rockler.com/mini-ball-bearing-drawer-slides-select-length) | 45 mm wide, 33 lb per pair — far more than a 1 lb tray needs; chosen for the full extension, not the load. Rockler mini slides are 3/8" thick if the bay gets tight. |
 | Captive thumbscrews + threaded standoffs | 2 + 2 | | Pull the drawer face plate home against its gasket. Nothing else holds the drawer in. |
 | Panel-mount terminal strip | 1 | [DigiKey panel-mount terminal blocks](https://www.digikey.com/products/en/connectors-interconnects/terminal-blocks-panel-mount/425), or a [panel-mount JST-XH board](https://kc3dprint.com/products/panel-mount-jst-xh-board) | Rear of the bay. The rings and the nest fan land here; the drawer harness plugs into it. JST wire-to-wire is keyed and awkward to panel-mount, so a barrier terminal strip is the simpler answer. |
@@ -326,7 +351,7 @@ Service closure is a manual plug cap, which cannot fail shut while nobody is wat
 
 ### Ytong nest core with carved chambers
 
-Two 100 mm slabs of aerated concrete cut to the internal section and set back to back, with galleries
+One standard 24 x 8 x 4 in AAC block, halved and trimmed to two slabs set back to back, with galleries
 carved into the outward face of each — so the nest reads from two opposite walls, and moisture is
 uniform rather than the soil probe reading one arbitrary point of loose fill. Rigid galleries cannot
 subside. Ytong also wicks, which is what makes the passive reservoir work at all.
