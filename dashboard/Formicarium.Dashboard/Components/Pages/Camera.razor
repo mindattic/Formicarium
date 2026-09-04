@@ -1,0 +1,41 @@
+@page "/camera"
+@rendermode InteractiveServer
+@inject IConfiguration Configuration
+
+<PageTitle>Formicarium — Camera</PageTitle>
+
+<h1>Camera</h1>
+
+@if (string.IsNullOrWhiteSpace(StreamUrl))
+{
+    <p class="lede">
+        No camera configured. Set <code>Camera:StreamUrl</code> in <code>appsettings.json</code> to the
+        MJPEG or snapshot URL of the IR-capable IP camera.
+    </p>
+
+    <div class="chart">
+        <h2 style="margin-top:0">Why an IP camera and not an ESP32-CAM</h2>
+        <p class="lede" style="margin-bottom:0">
+            The original plan used an ESP32-CAM with a separate 850&nbsp;nm illuminator. .NET nanoFramework
+            has no OV2640 driver — it is an open feature request with no library — so that board would
+            have meant writing an Arduino C++ component in an otherwise all-C# project. An off-the-shelf
+            ONVIF or RTSP camera with built-in IR needs no firmware at all, and 850&nbsp;nm is invisible
+            to the ants and to us, so the column can be watched through the night without lighting it.
+        </p>
+    </div>
+}
+else
+{
+    <p class="lede">
+        Live view of the column. 850&nbsp;nm illumination is outside the ants' visible range, so night
+        footage costs the colony nothing.
+    </p>
+
+    <div class="chart">
+        <img src="@StreamUrl" alt="Formicarium camera" style="width:100%;height:auto;display:block;border-radius:4px" />
+    </div>
+}
+
+@code {
+    private string? StreamUrl => Configuration["Camera:StreamUrl"];
+}

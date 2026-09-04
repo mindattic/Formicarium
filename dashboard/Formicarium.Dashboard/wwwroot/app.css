@@ -1,0 +1,208 @@
+/*
+   One stylesheet, no framework classes in the markup. The palette is deliberately warm and dark:
+   this dashboard is most often looked at in a dim room next to a lit column, and a white page
+   would wash out the thing it is describing.
+*/
+
+:root {
+    --ground: #14110f;
+    --panel: #1c1815;
+    --panel-edge: #2a2520;
+    --ink: #e8e2d9;
+    --ink-dim: #9a9089;
+    --ink-faint: #6b625a;
+    --accent: #c9a227;
+    --good: #7fb069;
+    --warn: #d99a3a;
+    --bad: #d4614a;
+    --chan-red: #d4614a;
+    --chan-green: #7fb069;
+    --chan-blue: #5b8dd9;
+    --radius: 4px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); }
+
+.shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+.shell-head {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 0 1.5rem;
+    height: 3.5rem;
+    border-bottom: 1px solid var(--panel-edge);
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.brand { display: flex; align-items: center; gap: .6rem; text-decoration: none; color: var(--ink); }
+
+.brand-mark {
+    width: .7rem; height: .7rem; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(201, 162, 39, .18);
+}
+
+.brand-text { font-weight: 600; letter-spacing: .14em; text-transform: uppercase; font-size: .8rem; }
+
+.shell-nav { display: flex; gap: .25rem; }
+
+.nav-tab {
+    padding: .4rem .85rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--ink-dim);
+    font-size: .85rem;
+}
+
+.nav-tab:hover { color: var(--ink); background: #241f1b; }
+.nav-tab.active { color: var(--ground); background: var(--accent); font-weight: 600; }
+
+.shell-body { padding: 1.5rem; max-width: 1180px; width: 100%; margin: 0 auto; flex: 1; }
+
+h1 { font-size: 1.05rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin: 0 0 .35rem; }
+h2 { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); margin: 2rem 0 .75rem; font-weight: 600; }
+p.lede { color: var(--ink-dim); margin: 0 0 1.5rem; max-width: 62ch; }
+
+/* --- status strip --------------------------------------------------------- */
+
+.status {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem;
+    padding: .7rem 1rem; margin-bottom: 1.5rem;
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: var(--radius);
+    font-size: .82rem; color: var(--ink-dim);
+}
+
+.status strong { color: var(--ink); font-weight: 600; }
+.status .sep { color: var(--ink-faint); }
+
+.pill {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .15rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600;
+    letter-spacing: .04em;
+}
+
+.pill.live { background: rgba(127, 176, 105, .15); color: var(--good); }
+.pill.sim { background: rgba(201, 162, 39, .15); color: var(--accent); }
+.pill.lost { background: rgba(212, 97, 74, .15); color: var(--bad); }
+
+/* --- fault banner --------------------------------------------------------- */
+
+.faults { margin-bottom: 1.5rem; display: grid; gap: .5rem; }
+
+.fault {
+    padding: .6rem .9rem; border-radius: var(--radius); font-size: .85rem;
+    border-left: 3px solid var(--warn); background: rgba(217, 154, 58, .09); color: #e8d5b0;
+}
+
+.fault.critical { border-left-color: var(--bad); background: rgba(212, 97, 74, .1); color: #f0c9be; }
+
+/* --- metric tiles --------------------------------------------------------- */
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .75rem; }
+
+.tile {
+    background: var(--panel); border: 1px solid var(--panel-edge);
+    border-radius: var(--radius); padding: .9rem 1rem;
+}
+
+.tile .label { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+.tile .value { font-size: 1.7rem; font-variant-numeric: tabular-nums; margin-top: .2rem; line-height: 1.1; }
+.tile .unit { font-size: .9rem; color: var(--ink-dim); margin-left: .15rem; }
+.tile .sub { font-size: .75rem; color: var(--ink-faint); margin-top: .3rem; }
+.tile.dead .value { color: var(--bad); }
+.tile.dead .sub { color: var(--bad); }
+
+/* --- actuator lamps ------------------------------------------------------- */
+
+.lamps { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+.lamp {
+    display: flex; align-items: center; gap: .55rem;
+    background: var(--panel); border: 1px solid var(--panel-edge);
+    border-radius: var(--radius); padding: .55rem .9rem; font-size: .85rem; color: var(--ink-dim);
+}
+
+.lamp .bulb { width: .6rem; height: .6rem; border-radius: 50%; background: #332c26; }
+.lamp.on { color: var(--ink); }
+.lamp.on .bulb { background: var(--good); box-shadow: 0 0 8px rgba(127, 176, 105, .7); }
+.lamp.pending .bulb { background: var(--warn); box-shadow: 0 0 8px rgba(217, 154, 58, .6); }
+
+/* --- risers --------------------------------------------------------------- */
+
+.risers { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .75rem; }
+
+.riser {
+    background: var(--panel); border: 1px solid var(--panel-edge);
+    border-radius: var(--radius); padding: 1rem; position: relative; overflow: hidden;
+}
+
+.riser::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--riser-color, #332c26);
+}
+
+.riser .name { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+.riser .rate { font-size: 1.6rem; font-variant-numeric: tabular-nums; margin-top: .2rem; }
+.riser .rate small { font-size: .8rem; color: var(--ink-dim); }
+.riser .chan { font-size: .8rem; margin-top: .5rem; display: flex; align-items: center; gap: .4rem; }
+.riser .swatch { width: .7rem; height: .7rem; border-radius: 2px; }
+.riser .meter { height: 4px; background: #241f1b; border-radius: 2px; margin-top: .6rem; overflow: hidden; }
+.riser .meter i { display: block; height: 100%; transition: width .4s ease; }
+.riser .total { font-size: .75rem; color: var(--ink-faint); margin-top: .5rem; font-variant-numeric: tabular-nums; }
+
+/* --- controls ------------------------------------------------------------- */
+
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+button {
+    font: inherit; font-size: .85rem;
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--panel-edge); border-radius: var(--radius);
+    padding: .5rem .95rem; cursor: pointer;
+}
+
+button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.selected { background: var(--accent); color: var(--ground); border-color: var(--accent); font-weight: 600; }
+button.danger:hover:not(:disabled) { border-color: var(--bad); color: var(--bad); }
+
+.hint { font-size: .8rem; color: var(--ink-faint); margin-top: .6rem; max-width: 62ch; }
+
+/* --- tables --------------------------------------------------------------- */
+
+.scroll { overflow-x: auto; }
+
+table { border-collapse: collapse; width: 100%; font-size: .875rem; }
+th, td { padding: .5rem .75rem; text-align: left; border-bottom: 1px solid var(--panel-edge); }
+th { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* --- charts --------------------------------------------------------------- */
+
+.chart { background: var(--panel); border: 1px solid var(--panel-edge); border-radius: var(--radius); padding: 1rem; }
+.chart svg { display: block; width: 100%; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 1rem; font-size: .78rem; color: var(--ink-dim); margin-top: .75rem; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: 1rem; height: 2px; display: inline-block; }
+
+.empty { color: var(--ink-faint); font-size: .875rem; padding: 2rem 0; text-align: center; }
+
+#blazor-error-ui {
+    background: var(--bad); color: #fff; bottom: 0; display: none;
+    left: 0; padding: .8rem 1.25rem; position: fixed; width: 100%; z-index: 1000;
+}
+
+#blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: 1rem; top: .75rem; }

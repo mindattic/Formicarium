@@ -1,0 +1,165 @@
+@page "/"
+@rendermode InteractiveServer
+@implements IDisposable
+@inject ColonyMonitor Monitor
+@inject IFormicariumClient Client
+
+<PageTitle>Formicarium — Live</PageTitle>
+
+<h1>Live</h1>
+<p class="lede">
+    The column at a glance. Target nest temperature is 79–83&nbsp;°F, held flat year-round —
+    <em>Tetramorium immigrans</em> needs no diapause, so there is no seasonal schedule to follow.
+    Hydration is passive: the pump only tops up a reservoir that wicks into the nest core, and
+    that reservoir holds less water than could harm the colony even if it all went in at once.
+</p>
+
+<StatusStrip />
+
+@if (Monitor.Latest is not { } state)
+{
+    <div class="empty">Nothing to show yet.</div>
+}
+else
+{
+    var faults = FaultText.Describe(state.Faults).ToList();
+
+    @if (faults.Count > 0)
+    {
+        <div class="faults">
+            @foreach (var (text, critical) in faults)
+            {
+                <div class="fault @(critical ? "critical" : "")">@text</div>
+            }
+        </div>
+    }
+
+    <h2>Nest</h2>
+    <div class="tiles">
+        <MetricTile Label="Nest bottom" Value="state.NestBottomTempC" Ok="state.NestBottomTempOk"
+                    Kind="MetricTile.Unit.Temperature" Note="heater control probe" />
+        <MetricTile Label="Nest top" Value="state.NestTopTempC" Ok="state.NestTopTempOk"
+                    Kind="MetricTile.Unit.Temperature" Note="@GradientNote(state)" />
+        <MetricTile Label="Substrate" Value="state.SoilMoisturePct" Ok="state.SoilMoistureOk"
+                    Kind="MetricTile.Unit.Percent" Note="wicked from the reservoir" />
+        <MetricTile Label="Nest air" Value="state.NestHumidityPct" Ok="state.NestHumidityOk"
+                    Kind="MetricTile.Unit.Percent" Note="SHT31-B · mould risk" />
+    </div>
+
+    <h2>Outworld</h2>
+    <div class="tiles">
+        <MetricTile Label="Outworld" Value="state.OutworldTempC" Ok="state.OutworldTempOk"
+                    Kind="MetricTile.Unit.Temperature" Note="foraging arena" />
+        <MetricTile Label="Outworld air" Value="state.OutworldHumidityPct" Ok="state.OutworldHumidityOk"
+                    Kind="MetricTile.Unit.Percent" Note="SHT31-A · drives the fan" />
+    </div>
+
+    <h2>Actuators</h2>
+    <div class="lamps">
+        <div class="lamp @(state.HeaterOn ? "on" : "")"><span class="bulb"></span>Heater</div>
+        <div class="lamp @(state.RefillPumpOn ? "on" : state.RefillWanted ? "pending" : "")">
+            <span class="bulb"></span>Refill pump@(!state.RefillPumpOn && state.RefillWanted ? " — waiting on cooldown" : "")
+        </div>
+        <div class="lamp @(state.ReservoirFull ? "on" : "pending")">
+            <span class="bulb"></span>Reservoir @(state.ReservoirFull ? "full" : "low")
+        </div>
+        <div class="lamp @(state.FeedPumpOn ? "on" : "")"><span class="bulb"></span>Feeder</div>
+        <div class="lamp @(state.FanOn ? "on" : "")"><span class="bulb"></span>Fan</div>
+    </div>
+
+    <h2>Risers</h2>
+    <div class="risers">
+        @for (var riser = 0; riser < state.RiserCounts.Length; riser++)
+        {
+            var channel = riser < state.RiserChannel.Length ? state.RiserChannel[riser] : 0;
+            var brightness = riser < state.RiserBrightness.Length ? state.RiserBrightness[riser] : 0;
+            var rate = riser < state.RiserRatesPerMinute.Length ? state.RiserRatesPerMinute[riser] : 0;
+            var colour = Channels.Css(channel);
+
+            <div class="riser" style="--riser-color: @colour">
+                <div class="name">Riser @(riser + 1)</div>
+                <div class="rate">@rate.ToString("0.0") <small>crossings / min</small></div>
+                <div class="chan">
+                    <span class="swatch" style="background: @colour"></span>
+                    @Channels.Name(channel) — @((brightness * 100).ToString("0"))% brightness
+                </div>
+                <div class="meter"><i style="width: @((brightness * 100).ToString("0"))%; background: @colour"></i></div>
+                <div class="total">@state.RiserCounts[riser].ToString("N0") since boot</div>
+            </div>
+        }
+    </div>
+    <p class="hint">
+        Colour assignments rotate at local midnight, so each riser holds each channel every third day.
+        That rotation is what separates a colour preference from a preference for the tube nearest the
+        food dish — see the Traffic page for both readings side by side.
+    </p>
+
+    <h2>Controls</h2>
+    <div class="controls">
+        <button class="@(state.LightingMode == 0 ? "selected" : "")" @onclick="() => SetLighting(LightingMode.Off)">Lights off</button>
+        <button class="@(state.LightingMode == 1 ? "selected" : "")" @onclick="() => SetLighting(LightingMode.Fixed)">Fixed</button>
+        <button class="@(state.LightingMode == 2 ? "selected" : "")" @onclick="() => SetLighting(LightingMode.ClosedLoop)">Closed loop</button>
+        <span class="sep"></span>
+        <button @onclick="Feed" disabled="@state.ServiceMode">Feed now</button>
+        <button class="danger" @onclick="ToggleService">@(state.ServiceMode ? "Leave service mode" : "Enter service mode")</button>
+
+        @if ((state.Faults & (int)(Faults.RefillCutoff | Faults.WaterSupplyEmpty)) != 0)
+        {
+            <button @onclick="AckHydration">Acknowledge hydration fault</button>
+        }
+    </div>
+
+    @if (_feedMessage is not null)
+    {
+        <p class="hint">@_feedMessage</p>
+    }
+
+    <p class="hint">
+        <strong>Off</strong> is the dark control condition. <strong>Fixed</strong> lights every riser
+        equally, so colour is present but carries no traffic information. <strong>Closed loop</strong>
+        is the experiment. Service mode stops every output for handling — it closes nothing, because
+        there is no gate: containment during service is the manual riser plug caps.
+    </p>
+}
+
+@code {
+    private string? _feedMessage;
+
+    protected override void OnInitialized() => Monitor.Updated += OnUpdated;
+
+    public void Dispose() => Monitor.Updated -= OnUpdated;
+
+    private void OnUpdated() => InvokeAsync(StateHasChanged);
+
+    private async Task SetLighting(LightingMode mode) => await Client.SetLightingModeAsync(mode);
+
+    private async Task Feed()
+    {
+        var accepted = await Client.RequestFeedAsync();
+
+        // A refusal is a normal outcome, not an error: the dish is small and the dose is rate
+        // limited, so saying why is more useful than failing silently.
+        _feedMessage = accepted
+            ? "Dose started."
+            : "Refused — either a dose is already running, or the manual cooldown has not elapsed.";
+    }
+
+    private async Task ToggleService()
+    {
+        var target = !(Monitor.Latest?.ServiceMode ?? false);
+        await Client.SetServiceModeAsync(target);
+    }
+
+    private async Task AckHydration() => await Client.AcknowledgeHydrationAsync();
+
+    private static string GradientNote(DeviceState state)
+    {
+        if (!state.NestBottomTempOk || !state.NestTopTempOk)
+        {
+            return "gradient unknown";
+        }
+
+        var delta = state.NestBottomTempC - state.NestTopTempC;
+        return $"{delta:0.0} °C below the base";
+    }
+}

@@ -1,0 +1,1238 @@
+<title>Formicarium Column</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three/0.160.0/three.min.js"></script>
+
+<style>
+/* Whiteprint / blueprint. Light mode is drafting paper with blue-grey line work; dark mode is
+   an actual blueprint. Same metaphor inverted, both real drafting conventions. */
+:root {
+  --ground:        #eef1f5;
+  --ground-sunk:   #e3e8ee;
+  --panel-solid:   #f7f9fb;
+  --edge:          #c7d1dd;
+  --edge-strong:   #a7b6c7;
+  --ink:           #16212e;
+  --ink-soft:      #4a5b6e;
+  --ink-faint:     #7d8c9d;
+  --accent:        #b8631a;
+  --accent-soft:   #f0e2d2;
+  --grid:          #d5dde6;
+  --chan-r:        #c4503a;
+  --chan-g:        #4f8543;
+  --chan-b:        #3a6bb5;
+  --ok:            #4f8543;
+  --warn:          #b8631a;
+  --bad:           #b03a28;
+  --acrylic:       #b9d0e0;
+  --ytong:         #d8d3c6;
+  --shadow:        0 1px 2px rgba(22,33,46,.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:      #0d1521;
+    --ground-sunk: #091019;
+    --panel-solid: #121d2c;
+    --edge:        #24354a;
+    --edge-strong: #385170;
+    --ink:         #dde6f0;
+    --ink-soft:    #93a6bb;
+    --ink-faint:   #62778f;
+    --accent:      #e39a4a;
+    --accent-soft: #2a2013;
+    --grid:        #1b2939;
+    --chan-r:      #e0705a;
+    --chan-g:      #7fb069;
+    --chan-b:      #5b8dd9;
+    --ok:          #7fb069;
+    --warn:        #e39a4a;
+    --bad:         #e0705a;
+    --acrylic:     #2e4a63;
+    --ytong:       #6b6558;
+    --shadow:      0 1px 2px rgba(0,0,0,.4);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:      #0d1521;
+  --ground-sunk: #091019;
+  --panel-solid: #121d2c;
+  --edge:        #24354a;
+  --edge-strong: #385170;
+  --ink:         #dde6f0;
+  --ink-soft:    #93a6bb;
+  --ink-faint:   #62778f;
+  --accent:      #e39a4a;
+  --accent-soft: #2a2013;
+  --grid:        #1b2939;
+  --chan-r:      #e0705a;
+  --chan-g:      #7fb069;
+  --chan-b:      #5b8dd9;
+  --ok:          #7fb069;
+  --warn:        #e39a4a;
+  --bad:         #e0705a;
+  --acrylic:     #2e4a63;
+  --ytong:       #6b6558;
+  --shadow:      0 1px 2px rgba(0,0,0,.4);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 16px/1.62 "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .eyebrow, .stepnum {
+  font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", ui-sans-serif, sans-serif;
+}
+
+code, .mono, td.num, .dim { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+/* ---------- shell ---------- */
+
+.wrap { max-width: 1220px; margin: 0 auto; padding: 0 24px 96px; }
+
+.masthead {
+  border-bottom: 2px solid var(--ink);
+  padding: 40px 0 20px;
+  margin-bottom: 36px;
+}
+
+.eyebrow {
+  font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 10px;
+}
+
+h1 {
+  font-size: clamp(32px, 5.5vw, 54px); font-weight: 700; line-height: 1.02;
+  margin: 0 0 14px; text-wrap: balance; letter-spacing: -.015em;
+}
+
+.standfirst {
+  font-size: 18px; color: var(--ink-soft); max-width: 62ch; margin: 0 0 22px;
+}
+
+.stamps {
+  display: flex; flex-wrap: wrap; gap: 8px 28px;
+  font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-faint);
+}
+.stamps b { color: var(--ink); font-weight: 500; }
+
+.layout { display: grid; grid-template-columns: 1fr; gap: 40px; }
+@media (min-width: 1000px) { .layout { grid-template-columns: 216px 1fr; gap: 56px; } }
+
+/* ---------- rail ---------- */
+
+.rail { display: none; }
+@media (min-width: 1000px) {
+  .rail { display: block; position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+}
+
+.rail a {
+  display: block; padding: 5px 0 5px 12px; border-left: 2px solid var(--edge);
+  color: var(--ink-soft); text-decoration: none; font-size: 13.5px;
+}
+.rail a:hover { color: var(--ink); border-left-color: var(--edge-strong); }
+.rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.progress {
+  margin-top: 22px; padding: 14px; border: 1px solid var(--edge);
+  background: var(--panel-solid); box-shadow: var(--shadow);
+}
+.progress .eyebrow { margin-bottom: 8px; }
+.progress .count { font-family: "IBM Plex Mono", monospace; font-size: 22px; font-weight: 500; }
+.progress .bar { height: 4px; background: var(--ground-sunk); margin-top: 10px; }
+.progress .bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s ease; }
+.progress button {
+  margin-top: 12px; width: 100%; font: 500 12px/1 "IBM Plex Sans", sans-serif;
+  letter-spacing: .04em; text-transform: uppercase;
+  background: none; border: 1px solid var(--edge); color: var(--ink-soft);
+  padding: 8px; cursor: pointer;
+}
+.progress button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- sections ---------- */
+
+section { margin-bottom: 68px; scroll-margin-top: 24px; }
+
+h2 {
+  font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--ink); margin: 0 0 6px; padding-bottom: 8px; border-bottom: 1px solid var(--ink);
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+}
+h2 span { font-family: "IBM Plex Mono", monospace; font-weight: 400; color: var(--ink-faint); letter-spacing: 0; text-transform: none; font-size: 12px; }
+
+h3 { font-size: 19px; font-weight: 600; margin: 32px 0 8px; letter-spacing: -.01em; }
+
+p { margin: 0 0 14px; max-width: 68ch; }
+.lede { color: var(--ink-soft); }
+ul, ol { max-width: 68ch; padding-left: 22px; }
+li { margin-bottom: 6px; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+/* ---------- blueprint viewer ---------- */
+
+.viewer {
+  display: grid; grid-template-columns: 1fr; gap: 0;
+  border: 1px solid var(--edge); background: var(--panel-solid); box-shadow: var(--shadow);
+}
+@media (min-width: 760px) { .viewer { grid-template-columns: 1fr 232px; } }
+
+#stage { width: 100%; height: 460px; display: block; background: var(--ground-sunk); cursor: grab; }
+#stage:active { cursor: grabbing; }
+
+.viewer-side { border-top: 1px solid var(--edge); padding: 16px; }
+@media (min-width: 760px) { .viewer-side { border-top: 0; border-left: 1px solid var(--edge); } }
+
+.key { list-style: none; padding: 0; margin: 0 0 16px; }
+.key li { margin: 0; }
+.key button {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+  background: none; border: 0; padding: 6px 4px; cursor: pointer;
+  font: 400 13px/1.3 "IBM Plex Sans", sans-serif; color: var(--ink-soft);
+  border-radius: 2px;
+}
+.key button:hover, .key button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); }
+.key i { width: 12px; height: 12px; flex: none; border: 1px solid rgba(0,0,0,.25); }
+.key small { display: block; color: var(--ink-faint); font-size: 11.5px; }
+
+.viewer-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.viewer-controls button {
+  font: 500 11.5px/1 "IBM Plex Sans", sans-serif; letter-spacing: .04em; text-transform: uppercase;
+  background: none; border: 1px solid var(--edge); color: var(--ink-soft);
+  padding: 8px 10px; cursor: pointer;
+}
+.viewer-controls button:hover { border-color: var(--accent); color: var(--accent); }
+.viewer-controls button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--ground); }
+
+.fallback { padding: 24px; color: var(--ink-faint); font-size: 14px; }
+
+figcaption { font-size: 13px; color: var(--ink-faint); margin-top: 10px; max-width: 68ch; }
+
+/* ---------- spec grid ---------- */
+
+.specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 1px; background: var(--edge); border: 1px solid var(--edge); }
+.spec { background: var(--panel-solid); padding: 13px 15px; }
+.spec dt { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600; }
+.spec dd { margin: 3px 0 0; font-family: "IBM Plex Mono", monospace; font-size: 17px; font-weight: 500; }
+.spec dd small { font-size: 12px; color: var(--ink-faint); font-weight: 400; }
+
+/* ---------- decisions ---------- */
+
+.decision { border-left: 3px solid var(--edge-strong); padding: 2px 0 2px 18px; margin: 0 0 26px; max-width: 72ch; }
+.decision.cut { border-left-color: var(--bad); }
+.decision.added { border-left-color: var(--ok); }
+.decision h3 { margin: 0 0 6px; font-size: 17px; }
+.decision .swap { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-faint); margin-bottom: 8px; }
+.decision .swap s { color: var(--bad); text-decoration-thickness: 1px; }
+.decision .swap b { color: var(--ok); font-weight: 500; }
+.decision p { margin: 0; font-size: 15px; color: var(--ink-soft); }
+
+/* ---------- tables ---------- */
+
+.scroll { overflow-x: auto; border: 1px solid var(--edge); background: var(--panel-solid); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 520px; }
+th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--edge); vertical-align: top; }
+thead th {
+  font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint);
+  background: var(--ground-sunk); position: sticky; top: 0;
+}
+tbody tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.mono { font-size: 13px; }
+.pin { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 12.5px; font-weight: 500;
+       background: var(--ground-sunk); border: 1px solid var(--edge); padding: 1px 6px; }
+.pin.hot { background: var(--accent); border-color: var(--accent); color: var(--ground); }
+td s { color: var(--ink-faint); }
+
+/* ---------- callout ---------- */
+
+.callout {
+  border: 1px solid var(--edge); border-left: 3px solid var(--accent);
+  background: var(--panel-solid); padding: 15px 18px; margin: 0 0 22px; max-width: 72ch;
+  box-shadow: var(--shadow);
+}
+.callout .eyebrow { margin-bottom: 6px; }
+.callout p:last-child { margin-bottom: 0; }
+.callout.danger { border-left-color: var(--bad); }
+.callout.danger .eyebrow { color: var(--bad); }
+
+/* ---------- steps ---------- */
+
+.phase { font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 12px; font-weight: 700;
+         letter-spacing: .14em; text-transform: uppercase; color: var(--accent);
+         margin: 34px 0 12px; display: flex; align-items: center; gap: 12px; }
+.phase::after { content: ""; flex: 1; height: 1px; background: var(--edge); }
+
+.steps { list-style: none; padding: 0; margin: 0; max-width: 74ch; }
+.steps li { margin: 0; border-bottom: 1px solid var(--edge); }
+.steps label { display: grid; grid-template-columns: 22px 30px 1fr; gap: 12px; align-items: start;
+               padding: 12px 4px; cursor: pointer; }
+.steps input { margin: 3px 0 0; width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+.stepnum { font-size: 12.5px; font-weight: 700; color: var(--ink-faint); padding-top: 3px; font-variant-numeric: tabular-nums; }
+.steps .body { font-size: 15px; }
+.steps .body em { color: var(--ink-faint); font-style: normal; font-size: 13.5px; display: block; margin-top: 3px; }
+.steps input:checked ~ .body { color: var(--ink-faint); }
+.steps input:checked ~ .body strong { text-decoration: line-through; }
+.steps label:focus-within { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ---------- misc ---------- */
+
+.grid2 { display: grid; grid-template-columns: 1fr; gap: 28px; }
+@media (min-width: 760px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+
+figure { margin: 0 0 26px; }
+figure svg { display: block; width: 100%; height: auto; background: var(--panel-solid); border: 1px solid var(--edge); }
+
+.chanchip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.chanchip i { width: 10px; height: 10px; }
+
+footer { border-top: 1px solid var(--edge); padding-top: 20px; color: var(--ink-faint); font-size: 13px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">Build manual &middot; Revision 1</div>
+  <h1>Formicarium Column</h1>
+  <p class="standfirst">
+    A self-regulating habitat for <em>Tetramorium immigrans</em> in a single square acrylic column:
+    passive hydration, a heated Ytong nest core, three always-open risers, and a closed-loop
+    colour experiment at the mouth of each one. Firmware in C# on .NET nanoFramework.
+  </p>
+  <div class="stamps">
+    <span>Species <b>Tetramorium immigrans</b></span>
+    <span>Nest target <b>79&ndash;83&nbsp;&deg;F</b></span>
+    <span>Overall height <b>25.5&nbsp;in / 648&nbsp;mm</b></span>
+    <span>Status <b>pre-build, nothing ordered</b></span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <nav class="rail" aria-label="Sections">
+    <a href="#blueprint">Blueprint</a>
+    <a href="#specs">Key figures</a>
+    <a href="#decisions">Design decisions</a>
+    <a href="#parts">Parts</a>
+    <a href="#pins">Pin assignments</a>
+    <a href="#drawings">Drawings</a>
+    <a href="#steps">Build sequence</a>
+    <a href="#bringup">Bring-up</a>
+    <a href="#experiment">The experiment</a>
+
+    <div class="progress">
+      <div class="eyebrow">Progress</div>
+      <div class="count"><span id="done">0</span> / <span id="total">0</span></div>
+      <div class="bar"><i id="bar"></i></div>
+      <button type="button" id="reset">Clear all</button>
+    </div>
+  </nav>
+
+  <main>
+
+  <!-- ============ BLUEPRINT ============ -->
+  <section id="blueprint">
+    <h2>Blueprint <span>drag to orbit &middot; scroll to zoom</span></h2>
+    <figure>
+      <div class="viewer">
+        <canvas id="stage" aria-label="Interactive 3D section drawing of the formicarium column"></canvas>
+        <div class="viewer-side">
+          <div class="eyebrow">Assemblies</div>
+          <ul class="key" id="key"></ul>
+          <div class="viewer-controls">
+            <button type="button" id="explode" aria-pressed="false">Explode</button>
+            <button type="button" id="sleeve" aria-pressed="true">Sleeve</button>
+            <button type="button" id="recentre">Recentre</button>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        Bottom to top: ballasted base, nest with the Ytong core and reservoir, sealed electronics
+        bay, outworld, vented lid. The three risers run up the outside of the bay so the ant path
+        never enters it. Click an assembly to isolate it; <strong>Explode</strong> separates the
+        modules along the service axis.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ SPECS ============ -->
+  <section id="specs">
+    <h2>Key figures</h2>
+    <dl class="specs">
+      <div class="spec"><dt>Section</dt><dd>6 &times; 6 <small>in internal</small></dd></div>
+      <div class="spec"><dt>Wall</dt><dd>&frac14; <small>in cast acrylic</small></dd></div>
+      <div class="spec"><dt>Nest</dt><dd>12 <small>in tall</small></dd></div>
+      <div class="spec"><dt>Bay</dt><dd>4 <small>in tall</small></dd></div>
+      <div class="spec"><dt>Outworld</dt><dd>8 <small>in tall</small></dd></div>
+      <div class="spec"><dt>Base</dt><dd>16 &times; 16 <small>in, ballasted</small></dd></div>
+      <div class="spec"><dt>Tip angle</dt><dd>&asymp;45 <small>deg</small></dd></div>
+      <div class="spec"><dt>Risers</dt><dd>3 &times; &frac12; <small>in OD</small></dd></div>
+      <div class="spec"><dt>Reservoir</dt><dd>131 <small>mL</small></dd></div>
+      <div class="spec"><dt>Heater</dt><dd>20 <small>W at 12&nbsp;V DC</small></dd></div>
+      <div class="spec"><dt>Vent mesh</dt><dd>&lt;0.5 <small>mm aperture</small></dd></div>
+      <div class="spec"><dt>Refill interval</dt><dd>3&ndash;4 <small>weeks</small></dd></div>
+    </dl>
+    <figcaption>
+      Tip angle is <code>atan(half-base / centre-of-mass height)</code>. With the substrate and
+      ballast low and an 8&nbsp;in half-base, the column has to be tilted about 45&deg; before it
+      goes over &mdash; which is the whole reason the base is wider than it looks like it needs to be.
+    </figcaption>
+  </section>
+
+  <!-- ============ DECISIONS ============ -->
+  <section id="decisions">
+    <h2>Design decisions <span>what changed from the first sketch, and why</span></h2>
+    <p class="lede">
+      Every item here replaced something that would not have worked. They are recorded because the
+      reasoning is more reusable than the conclusion, and because two of them are the same argument
+      applied twice.
+    </p>
+
+    <div class="decision cut">
+      <h3>The heater is 12&nbsp;V DC, not a mains cable</h3>
+      <div class="swap"><s>Zoo Med Repti Heat Cable, 120&nbsp;VAC</s> &rarr; <b>12&nbsp;V DC silicone cable, 20&nbsp;W</b></div>
+      <p>
+        The original parts list paired a wall-plug mains heat cable with an IRLZ44N MOSFET. A
+        logic-level DC MOSFET cannot switch mains at all, so the design would not have run &mdash; and
+        building it anyway would have put 120&nbsp;V inside a plastic box alongside water lines. At
+        12&nbsp;V one supply feeds the heater and both pumps, and the cable wraps the
+        <em>outside</em> of the nest, so it needs no seal, never gets wet, and no ant can reach it.
+      </p>
+    </div>
+
+    <div class="decision cut">
+      <h3>No gate between nest and outworld</h3>
+      <div class="swap"><s>servo gate + IR interlock</s> &rarr; <b>three always-open risers</b></div>
+      <p>
+        A powered gate was the largest single point of failure in the system. A servo that jams
+        closed cuts the colony off from food and water, unattended, for as long as it takes someone
+        to notice &mdash; and no firmware can detect the difference between a gate that is closed and
+        a gate that is stuck. Three risers are also redundant against one fouling with debris or a
+        dead ant. Closure for servicing is a manual plug cap, which cannot fail shut while nobody
+        is watching.
+      </p>
+    </div>
+
+    <div class="decision cut">
+      <h3>The pump fills a reservoir, not the nest</h3>
+      <div class="swap"><s>probe-driven misting into substrate</s> &rarr; <b>pump &rarr; 131&nbsp;mL reservoir &rarr; wicking</b></div>
+      <p>
+        The same argument, pointed at what was left. With the gate gone the mist pump became the
+        biggest remaining single point of failure, and a maximum-runtime limit in firmware is no
+        defence against the failures that actually flood a sealed nest: a MOSFET that fails short, a
+        pump head that jams open, a reservoir siphoning through a stopped pump. So the pump was moved
+        off the nest entirely. It fills a reservoir smaller than a harmful dose, and the reservoir
+        wicks into the Ytong core with no actuator involved. <strong>The guarantee moved out of the
+        code and into the geometry, where an electrical fault cannot reach it.</strong>
+      </p>
+    </div>
+
+    <div class="decision added">
+      <h3>Square section, not a cylinder</h3>
+      <div class="swap"><s>6&nbsp;in ID cast acrylic tube</s> &rarr; <b>&frac14;&nbsp;in flat sheet, four walls</b></div>
+      <p>
+        An O-ring cannot seat on a curve, and a riser welded to a curved wall cannot be clamped
+        while it cures &mdash; so every joint that carries containment wanted a flat face. Three other
+        things fell out for free: large-bore cast acrylic tube is a specialty cut-to-order item and
+        was the most expensive part in the build, while flat sheet is a commodity; the Ytong core
+        becomes a saw cut instead of a turning job; and flat faces do not distort the camera. The
+        cost is four longitudinal seams where a tube had none &mdash; but flat-panel solvent welding is
+        how every acrylic aquarium is built, and those hold water. This one only has to hold ants.
+      </p>
+    </div>
+
+    <div class="decision added">
+      <h3>An opaque sleeve over the nest</h3>
+      <div class="swap"><s>bare clear acrylic nest</s> &rarr; <b>removable opaque sleeve</b></div>
+      <p>
+        A clear nest is permanently lit by room light. Ants dig away from light, so the original
+        design would have produced both chronic stress and a nest you could not see into &mdash; they
+        would have tunnelled against whichever face was darkest. Darkness by default, full view on
+        demand. Borrowed from the way <a href="https://tarheelants.com/">Tar Heel Ants</a> cover
+        their nests.
+      </p>
+    </div>
+
+    <div class="decision added">
+      <h3>Two humidity sensors, and a capped expansion port</h3>
+      <div class="swap"><b>SHT31 at 0x44 and 0x45</b> &middot; <b>bulkhead port, plugged</b></div>
+      <p>
+        The SHT31's ADDR pin gives two addresses on one bus, so one extra part buys a reading in each
+        zone: outworld air, which is what the fan can act on, and nest air, where mould risk actually
+        lives. Detecting a wet-substrate / dry-air mismatch &mdash; an original design goal &mdash; needs
+        both. Separately, a capped port goes into the nest wall now, while the box is empty:
+        <em>Tetramorium</em> was chosen because it reaches 1,000&ndash;10,000 workers, and cutting into
+        a populated column later is not a plan.
+      </p>
+    </div>
+
+    <div class="decision cut">
+      <h3>An IP camera, not an ESP32-CAM</h3>
+      <div class="swap"><s>ESP32-CAM + 850&nbsp;nm illuminator</s> &rarr; <b>IR ONVIF/RTSP camera</b></div>
+      <p>
+        .NET nanoFramework has no OV2640 driver &mdash; an open feature request with no library &mdash; so
+        that board would have meant one Arduino C++ component in an otherwise all-C# project. An
+        off-the-shelf IR camera needs no firmware at all, and 850&nbsp;nm is invisible to the ants and
+        to us, so the column can be watched all night without lighting it.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ PARTS ============ -->
+  <section id="parts">
+    <h2>Parts <span>full list and sourcing in docs/bom.md</span></h2>
+
+    <div class="callout">
+      <div class="eyebrow">Sourcing note</div>
+      <p>
+        Everything below is a commodity purchase except the <strong>&frac12;&nbsp;in acrylic tube</strong>
+        for the risers, which comes from a plastics supplier rather than a general retailer. That is
+        the entire specialty-parts list, and it is a short offcut. Switching from a round column to a
+        square one is what removed the expensive one.
+      </p>
+    </div>
+
+    <h3>Structure and nest</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Item</th><th class="num">Qty</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://www.tapplastics.com">Cast acrylic sheet, &frac14;&nbsp;in clear</a></td><td class="num">~6&nbsp;ft&sup2;</td><td>Walls, base, both bay plates, outworld floor, lid. Cast, not extruded &mdash; it solvent-welds and machines far better.</td></tr>
+          <tr><td><a href="https://www.canalplastic.com/products/clear-colorless-acrylic-tube">Clear acrylic tube, &frac12;&nbsp;in OD</a></td><td class="num">18&nbsp;in</td><td>Three risers. Canal Plastics stocks &frac14;&ndash;12&nbsp;in OD with same-day cutting.</td></tr>
+          <tr><td>Weld-On 4 (thin) and Weld-On 16 (thickened)</td><td class="num">1 ea</td><td>4 for panel seams, 16 for the riser collar fillets</td></tr>
+          <tr><td>Ytong / autoclaved aerated concrete block</td><td class="num">1</td><td>The nest core. Carves with a spoon and wicks water, which is what makes passive hydration work.</td></tr>
+          <tr><td><a href="https://www.amazon.com/byFormica-Insect-Escape-Prevention-Coating/dp/B0FBKSRJFG">byFormica PTFE Plus Fluon</a></td><td class="num">1</td><td>Band on the inner wall below the lid rim</td></tr>
+          <tr><td><a href="https://www.amazon.com/Aquarium-Marine-Silicone-Sealant-Adhesive/dp/B012NOVTD2">Aquarium-safe silicone</a></td><td class="num">1</td><td>Gaskets and secondary sealing</td></tr>
+          <tr><td>Stainless mesh, &lt;0.5&nbsp;mm aperture</td><td class="num">small</td><td>Lid vent. <em>Tetramorium</em> pass anything coarser.</td></tr>
+          <tr><td>Ballast plate, opaque sleeve stock, gasket sheet, thumbscrews, moat tray</td><td class="num">&mdash;</td><td>Base mass, nest darkness, module clamping, last-line containment</td></tr>
+          <tr><td><a href="https://www.statesideants.com/product-page/tetramorium-immigrans">Tetramorium immigrans colony</a></td><td class="num">1</td><td>Queen + workers, $28.99. Order <em>last</em> &mdash; see step 31.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Electronics</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Item</th><th class="num">Qty</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://www.amazon.com/ESP32-DEVKIT-ESP-WROOM-32-4MB-CP2101/dp/B07F1GWJ1N">ESP32 DevKit (ESP-WROOM-32)</a></td><td class="num">1</td><td>Runs .NET nanoFramework</td></tr>
+          <tr><td><a href="https://www.amazon.com/Hilitchi-DS18B20-Waterproof-Temperature-Sensors/dp/B018KFX5X0">DS18B20 waterproof probes</a></td><td class="num">5-pack</td><td>3 used, 2 spare. All share one 1-Wire bus.</td></tr>
+          <tr><td><a href="https://www.adafruit.com/product/2857">Adafruit SHT31-D breakout</a></td><td class="num">2</td><td>0x44 outworld, 0x45 nest</td></tr>
+          <tr><td><a href="https://www.amazon.com/DFROBOT-Gravity-Capacitive-Corrosion-Resistant/dp/B01GHY0N4K">DFRobot capacitive soil sensor</a></td><td class="num">1</td><td>In the Ytong core. <strong>Must be on ADC1.</strong></td></tr>
+          <tr><td><a href="https://www.adafruit.com/product/2167">Adafruit IR break beam, 3&nbsp;mm</a></td><td class="num">3</td><td>One pair per riser</td></tr>
+          <tr><td>WS2812B / NeoPixel rings, ~12&nbsp;px</td><td class="num">3</td><td>One per riser mouth, chained on one data line over RMT</td></tr>
+          <tr><td><a href="https://www.amazon.com/Bestol-5PCS-IRLZ44N-MOSFET-220AB/dp/B07DWYGNHC">IRLZ44N logic-level MOSFET</a></td><td class="num">5-pack</td><td>4 used: heater, refill pump, feed pump, fan</td></tr>
+          <tr><td><a href="https://www.amazon.com/Kamoer-Peristaltic-Hydroponics-Nutrient-Analytical/dp/B07GWJ78FN">Kamoer NKP 12&nbsp;V peristaltic pump</a></td><td class="num">2</td><td>Water and sugar water cannot share a pump or a line</td></tr>
+          <tr><td>Vertical float switch, normally-open</td><td class="num">1</td><td>Reservoir level. Wired so a broken wire reads <em>not full</em>.</td></tr>
+          <tr><td><a href="https://www.amazon.com/Gdstime-40mm-Small-Brushless-Cooling/dp/B00MYZADCY">Gdstime 40&nbsp;mm 5&nbsp;V fan</a></td><td class="num">1</td><td>Outworld circulation, humidity-gated</td></tr>
+          <tr><td>12&nbsp;V DC heating cable ~20&nbsp;W &middot; 12&nbsp;V 3&nbsp;A PSU &middot; buck converter</td><td class="num">1 ea</td><td>One supply for the whole column</td></tr>
+          <tr><td>IR-capable ONVIF / RTSP IP camera</td><td class="num">1</td><td>Consumed directly by the dashboard</td></tr>
+          <tr><td>4.7&nbsp;k&Omega; &times;1 &middot; 150&nbsp;&Omega; &times;4 &middot; 10&nbsp;k&Omega; &times;4 &middot; SS34 &times;3</td><td class="num">&mdash;</td><td>1-Wire pull-up, MOSFET gate resistors and pulldowns, flyback diodes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Cut from the original list</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Removed</th><th>Reason</th></tr></thead>
+        <tbody>
+          <tr><td><s>Zoo Med Repti Heat Cable 25&nbsp;W</s></td><td>120&nbsp;VAC. An IRLZ44N cannot switch it.</td></tr>
+          <tr><td><s>HiLetgo ESP32-CAM</s> &middot; <s>Ansice 850&nbsp;nm illuminator</s></td><td>No nanoFramework OV2640 driver exists.</td></tr>
+          <tr><td><s>Second tall acrylic vase</s></td><td>There is no second vessel. One rigid column instead.</td></tr>
+          <tr><td><s>6&nbsp;in ID cast acrylic tube</s></td><td>Wrong shape for every sealed joint, and the hardest part to buy.</td></tr>
+          <tr><td><s>Miuzei SG90 servo</s></td><td>The gate was the largest single point of failure.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ PINS ============ -->
+  <section id="pins">
+    <h2>Pin assignments <span>must match Core/Config/PinMap.cs</span></h2>
+
+    <div class="callout danger">
+      <div class="eyebrow">Three ways to lose a day</div>
+      <p>
+        <strong>ADC2 is dead while WiFi is on.</strong> The soil probe must be on ADC1 (GPIO 32&ndash;36, 39).
+        This is the most common ESP32 sensor bug and it presents as a sensor that worked on the bench.
+      </p>
+      <p>
+        <strong>nanoFramework's 1-Wire runs over a UART, not a bit-banged pin.</strong> It needs a COM
+        port's RX <em>and</em> TX tied together to the DQ line, with a 4.7&nbsp;k&Omega; pull-up to 3V3.
+        Without the pull-up the bus reads all-ones and every probe enumerates as absent.
+      </p>
+      <p>
+        <strong>Record the DS18B20 ROM IDs explicitly.</strong> Do not rely on enumeration order. Getting
+        it wrong is silent: the controller heats to the outworld probe and cooks the nest, or heats to
+        the nest-top probe and never reaches setpoint. Neither looks like a wiring fault.
+      </p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>GPIO</th><th>Function</th><th>Mode</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pin">21</span></td><td>SHT31 &times;2 &mdash; SDA</td><td class="mono">I2C1</td><td>Both sensors share the bus at 0x44 / 0x45</td></tr>
+          <tr><td><span class="pin">22</span></td><td>SHT31 &times;2 &mdash; SCL</td><td class="mono">I2C1</td><td>100&nbsp;kHz</td></tr>
+          <tr><td><span class="pin hot">16</span></td><td>1-Wire bus &mdash; RX</td><td class="mono">COM3_RX</td><td>Tied to TX and to DQ</td></tr>
+          <tr><td><span class="pin hot">17</span></td><td>1-Wire bus &mdash; TX</td><td class="mono">COM3_TX</td><td>Three DS18B20 by ROM ID, 4.7&nbsp;k&Omega; pull-up</td></tr>
+          <tr><td><span class="pin hot">34</span></td><td>Soil moisture</td><td class="mono">ADC1_CH6</td><td>Input-only pin, and on ADC1 &mdash; both required</td></tr>
+          <tr><td><span class="pin">27</span></td><td>IR beam &mdash; riser 1</td><td class="mono">in, pull-up</td><td>Interrupt on falling edge</td></tr>
+          <tr><td><span class="pin">14</span></td><td>IR beam &mdash; riser 2</td><td class="mono">in, pull-up</td><td></td></tr>
+          <tr><td><span class="pin">13</span></td><td>IR beam &mdash; riser 3</td><td class="mono">in, pull-up</td><td></td></tr>
+          <tr><td><span class="pin">19</span></td><td>IR emitter enable</td><td class="mono">out</td><td>All three emitters together</td></tr>
+          <tr><td><span class="pin">25</span></td><td>Heater</td><td class="mono">out</td><td>IRLZ44N, 150&nbsp;&Omega; gate, 10&nbsp;k&Omega; pulldown</td></tr>
+          <tr><td><span class="pin">26</span></td><td>Refill pump</td><td class="mono">out</td><td>Fills the reservoir. Never reaches the nest.</td></tr>
+          <tr><td><span class="pin">4</span></td><td>Feed pump</td><td class="mono">out</td><td>Sugar water to the outworld dish</td></tr>
+          <tr><td><span class="pin">33</span></td><td>Fan</td><td class="mono">out</td><td>Flyback diode across the fan</td></tr>
+          <tr><td><span class="pin hot">32</span></td><td>Reservoir float switch</td><td class="mono">in, pull-up</td><td><strong>LOW = full.</strong> See below.</td></tr>
+          <tr><td><span class="pin">23</span></td><td>WS2812B ring data</td><td class="mono">RMT</td><td>All three rings chained on one line</td></tr>
+          <tr><td><span class="pin">2</span></td><td>Status LED</td><td class="mono">out</td><td>Heartbeat, so a locked-up controller is visible</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Why the float switch reads LOW for full</h3>
+    <p class="lede">
+      The switch is wired to ground and read against the internal pull-up, so a risen float reads
+      LOW. That direction is chosen, not convenient. A broken wire floats HIGH, which reads
+      <em>not full</em>, which asks for a refill &mdash; and that refill is bounded twice over, by the
+      runtime limiter and by the fact that the reservoir cannot physically hold a harmful dose. The
+      opposite polarity would read <em>full</em> forever on a broken wire, silently stop hydrating the
+      colony, and look perfectly healthy on the dashboard. Fail-safe here means failing toward a
+      bounded action, because doing nothing is what kills a colony slowly.
+    </p>
+  </section>
+
+  <!-- ============ DRAWINGS ============ -->
+  <section id="drawings">
+    <h2>Drawings</h2>
+
+    <figure>
+      <svg viewBox="0 0 820 470" role="img" aria-label="Side elevation of the column with dimensions and sensor positions">
+        <defs>
+          <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="var(--ytong)" stroke-width="3"/>
+          </pattern>
+        </defs>
+
+        <!-- base -->
+        <rect x="196" y="404" width="330" height="22" fill="var(--edge)" stroke="var(--ink-soft)" stroke-width="1"/>
+        <text x="361" y="419" fill="var(--ink)" font-family="IBM Plex Mono, monospace" font-size="11" text-anchor="middle">BALLASTED BASE &mdash; 16 in sq</text>
+
+        <!-- nest -->
+        <rect x="266" y="212" width="190" height="192" fill="var(--acrylic)" fill-opacity=".35" stroke="var(--ink-soft)" stroke-width="1.5"/>
+        <rect x="278" y="238" width="166" height="166" fill="url(#hatch)" stroke="var(--ink-faint)" stroke-width="1"/>
+        <text x="361" y="300" fill="var(--ink)" font-family="IBM Plex Sans Condensed, sans-serif" font-size="13" font-weight="700" text-anchor="middle">YTONG CORE</text>
+        <text x="361" y="316" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10.5" text-anchor="middle">carved chambers against the wall</text>
+        <!-- reservoir well -->
+        <rect x="284" y="376" width="46" height="26" fill="var(--chan-b)" fill-opacity=".5" stroke="var(--chan-b)" stroke-width="1"/>
+        <text x="307" y="393" fill="var(--ink)" font-family="IBM Plex Mono, monospace" font-size="8.5" text-anchor="middle">131 mL</text>
+
+        <!-- bay -->
+        <rect x="266" y="148" width="190" height="64" fill="var(--panel-solid)" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="361" y="176" fill="var(--ink)" font-family="IBM Plex Sans Condensed, sans-serif" font-size="13" font-weight="700" text-anchor="middle">ELECTRONICS BAY</text>
+        <text x="361" y="192" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10.5" text-anchor="middle">sealed &middot; side access panel</text>
+        <!-- thermal break -->
+        <rect x="266" y="205" width="190" height="7" fill="var(--warn)" fill-opacity=".45"/>
+
+        <!-- outworld -->
+        <rect x="266" y="20" width="190" height="128" fill="var(--acrylic)" fill-opacity=".22" stroke="var(--ink-soft)" stroke-width="1.5"/>
+        <text x="361" y="60" fill="var(--ink)" font-family="IBM Plex Sans Condensed, sans-serif" font-size="13" font-weight="700" text-anchor="middle">OUTWORLD</text>
+        <text x="361" y="76" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10.5" text-anchor="middle">floor = bay ceiling</text>
+        <!-- ring windows -->
+        <circle cx="300" cy="142" r="6" fill="var(--chan-r)" fill-opacity=".8"/>
+        <circle cx="361" cy="142" r="6" fill="var(--chan-g)" fill-opacity=".8"/>
+        <circle cx="422" cy="142" r="6" fill="var(--chan-b)" fill-opacity=".8"/>
+        <!-- lid -->
+        <rect x="258" y="8" width="206" height="12" fill="var(--edge)" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="361" y="17.5" fill="var(--ink)" font-family="IBM Plex Mono, monospace" font-size="9" text-anchor="middle">VENTED LID &middot; FLUON RIM</text>
+
+        <!-- risers, outside the bay -->
+        <path d="M296 148 L296 212" stroke="var(--accent)" stroke-width="4" fill="none"/>
+        <path d="M240 148 Q222 180 240 212" stroke="var(--accent)" stroke-width="4" fill="none"/>
+        <path d="M482 148 Q500 180 482 212" stroke="var(--accent)" stroke-width="4" fill="none"/>
+        <text x="188" y="184" fill="var(--accent)" font-family="IBM Plex Sans Condensed, sans-serif" font-size="11" font-weight="700" text-anchor="middle">RISERS</text>
+        <text x="188" y="198" fill="var(--ink-faint)" font-family="IBM Plex Sans, sans-serif" font-size="9.5" text-anchor="middle">bypass the bay</text>
+        <text x="540" y="184" fill="var(--ink-faint)" font-family="IBM Plex Sans, sans-serif" font-size="9.5">3 &times; &frac12; in OD</text>
+
+        <!-- opaque sleeve -->
+        <rect x="256" y="212" width="10" height="192" fill="var(--ink)" fill-opacity=".65"/>
+        <rect x="456" y="212" width="10" height="192" fill="var(--ink)" fill-opacity=".65"/>
+        <text x="600" y="300" fill="var(--ink)" font-family="IBM Plex Sans Condensed, sans-serif" font-size="11" font-weight="700">OPAQUE SLEEVE</text>
+        <text x="600" y="314" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10">lifts off to view the nest</text>
+        <line x1="470" y1="300" x2="594" y2="300" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3"/>
+
+        <!-- probes -->
+        <circle cx="440" cy="252" r="4.5" fill="var(--bad)"/>
+        <text x="600" y="252" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10">DS18B20 &mdash; nest top</text>
+        <line x1="446" y1="252" x2="594" y2="252" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="440" cy="390" r="4.5" fill="var(--bad)"/>
+        <text x="600" y="390" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10">DS18B20 &mdash; nest bottom (control probe)</text>
+        <line x1="446" y1="390" x2="594" y2="390" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="440" cy="330" r="4.5" fill="var(--ok)"/>
+        <text x="600" y="330" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10">SHT31-B 0x45 &middot; soil probe</text>
+        <line x1="446" y1="330" x2="594" y2="330" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="440" cy="100" r="4.5" fill="var(--ok)"/>
+        <text x="600" y="100" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10">SHT31-A 0x44 &middot; DS18B20 &middot; fan</text>
+        <line x1="446" y1="100" x2="594" y2="100" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3"/>
+
+        <!-- heat cable -->
+        <text x="120" y="330" fill="var(--warn)" font-family="IBM Plex Sans Condensed, sans-serif" font-size="11" font-weight="700">HEAT CABLE</text>
+        <text x="120" y="344" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="9.5">wrapped OUTSIDE &mdash;</text>
+        <text x="120" y="356" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="9.5">no seal, no ant contact</text>
+        <line x1="196" y1="336" x2="254" y2="336" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 3"/>
+
+        <!-- dimensions -->
+        <line x1="150" y1="20" x2="150" y2="426" stroke="var(--ink-faint)" stroke-width="1"/>
+        <line x1="145" y1="20" x2="155" y2="20" stroke="var(--ink-faint)" stroke-width="1"/>
+        <line x1="145" y1="426" x2="155" y2="426" stroke="var(--ink-faint)" stroke-width="1"/>
+        <text x="143" y="228" fill="var(--ink)" font-family="IBM Plex Mono, monospace" font-size="10.5" text-anchor="end">25.5 in</text>
+        <text x="143" y="242" fill="var(--ink-faint)" font-family="IBM Plex Mono, monospace" font-size="9" text-anchor="end">648 mm</text>
+      </svg>
+      <figcaption>
+        <strong>Side elevation.</strong> The three risers leave the outworld floor, run down the
+        <em>outside</em> of the electronics bay, and re-enter through the nest ceiling &mdash; so the ant
+        path never crosses the bay. Both nest probes sit in the Ytong core; the heater never
+        penetrates anything.
+      </figcaption>
+    </figure>
+
+    <div class="grid2">
+      <figure>
+        <svg viewBox="0 0 400 300" role="img" aria-label="Detail of a riser tube solvent-welded through a flat acrylic panel">
+          <rect x="30" y="130" width="340" height="18" fill="var(--acrylic)" fill-opacity=".5" stroke="var(--ink-soft)" stroke-width="1.5"/>
+          <text x="50" y="122" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10.5">flat panel, &frac14; in</text>
+
+          <rect x="176" y="20" width="48" height="258" fill="var(--acrylic)" fill-opacity=".3" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="200" y="44" fill="var(--accent)" font-family="IBM Plex Sans Condensed, sans-serif" font-size="11" font-weight="700" text-anchor="middle">RISER</text>
+
+          <rect x="150" y="112" width="100" height="18" fill="var(--accent)" fill-opacity=".55" stroke="var(--accent)" stroke-width="1"/>
+          <rect x="150" y="148" width="100" height="18" fill="var(--accent)" fill-opacity=".55" stroke="var(--accent)" stroke-width="1"/>
+
+          <text x="290" y="112" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="10.5">collar</text>
+          <text x="290" y="126" fill="var(--ink-faint)" font-family="IBM Plex Sans, sans-serif" font-size="9.5">welded</text>
+          <line x1="252" y1="120" x2="284" y2="118" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="290" y="168" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="10.5">collar</text>
+          <line x1="252" y1="158" x2="284" y2="164" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3"/>
+
+          <text x="200" y="252" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="10.5" text-anchor="middle">Weld-On 16 fillet</text>
+          <text x="200" y="272" fill="var(--ok)" font-family="IBM Plex Sans Condensed, sans-serif" font-size="11" font-weight="700" text-anchor="middle">= ONE PIECE OF ACRYLIC</text>
+        </svg>
+        <figcaption>
+          <strong>Riser joint.</strong> Drill to the tube OD, slide through, weld a collar to each
+          face. Solvent welding fuses the parts chemically &mdash; there is no gasket to compress and no
+          friction fit to work loose. On a flat face it can be clamped while curing, which is exactly
+          what a curved wall makes impossible.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <svg viewBox="0 0 400 300" role="img" aria-label="Two-speed hydration path from pump to reservoir to nest core">
+          <rect x="16" y="24" width="94" height="46" fill="var(--panel-solid)" stroke="var(--ink-soft)" stroke-width="1.5"/>
+          <text x="63" y="44" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="11" text-anchor="middle">supply jar</text>
+          <text x="63" y="59" fill="var(--ink-faint)" font-family="IBM Plex Sans, sans-serif" font-size="9.5" text-anchor="middle">refill monthly</text>
+
+          <path d="M110 47 L170 47" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#a1)"/>
+          <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-soft)"/></marker></defs>
+
+          <rect x="170" y="24" width="80" height="46" fill="var(--accent)" fill-opacity=".2" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="210" y="44" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="11" text-anchor="middle">pump</text>
+          <text x="210" y="59" fill="var(--accent)" font-family="IBM Plex Mono, monospace" font-size="9" text-anchor="middle">seconds</text>
+
+          <path d="M210 70 L210 118" stroke="var(--ink-soft)" stroke-width="2" fill="none" marker-end="url(#a1)"/>
+
+          <rect x="150" y="118" width="120" height="50" fill="var(--chan-b)" fill-opacity=".3" stroke="var(--chan-b)" stroke-width="1.5"/>
+          <text x="210" y="138" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="11" text-anchor="middle">reservoir 131 mL</text>
+          <text x="210" y="154" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="9.5" text-anchor="middle">float switch reads full</text>
+
+          <path d="M210 168 L210 212" stroke="var(--ok)" stroke-width="2" stroke-dasharray="5 4" fill="none" marker-end="url(#a2)"/>
+          <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ok)"/></marker></defs>
+          <text x="222" y="194" fill="var(--ok)" font-family="IBM Plex Mono, monospace" font-size="9">wicks &middot; hours</text>
+
+          <rect x="120" y="212" width="180" height="58" fill="var(--ytong)" fill-opacity=".55" stroke="var(--ink-soft)" stroke-width="1.5"/>
+          <text x="210" y="234" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="11" text-anchor="middle">Ytong nest core</text>
+          <text x="210" y="252" fill="var(--ink-soft)" font-family="IBM Plex Sans, sans-serif" font-size="9.5" text-anchor="middle">no actuator on this leg</text>
+
+          <text x="20" y="212" fill="var(--ink-faint)" font-family="IBM Plex Sans, sans-serif" font-size="9.5">the fast,</text>
+          <text x="20" y="225" fill="var(--ink-faint)" font-family="IBM Plex Sans, sans-serif" font-size="9.5">electrical leg</text>
+          <text x="20" y="238" fill="var(--ink-faint)" font-family="IBM Plex Sans, sans-serif" font-size="9.5">cannot reach</text>
+          <text x="20" y="251" fill="var(--ink-faint)" font-family="IBM Plex Sans, sans-serif" font-size="9.5">the nest</text>
+        </svg>
+        <figcaption>
+          <strong>Two-speed hydration.</strong> The pump fills the reservoir in seconds; the reservoir
+          wicks into the core over hours. Nothing on the slow leg can be commanded, and the fast leg
+          cannot reach the colony &mdash; which is why a stuck pump overfills a harmless vessel instead of
+          flooding a nest with no drain.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ STEPS ============ -->
+  <section id="steps">
+    <h2>Build sequence <span>progress saves in this browser</span></h2>
+    <p class="lede">
+      Ordered so that nothing has to be undone. Electronics are proved on a breadboard before
+      anything is bonded, and the colony arrives last &mdash; after the column has run empty for two
+      weeks.
+    </p>
+    <div id="stepsroot"></div>
+  </section>
+
+  <!-- ============ BRING-UP ============ -->
+  <section id="bringup">
+    <h2>Bring-up order</h2>
+    <p class="lede">
+      One subsystem at a time on the breadboard, each proved before the next is added. Every one of
+      these has a failure mode that looks like a different subsystem's fault if you wire it all at
+      once.
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Subsystem</th><th>Prove it by</th><th>If it fails</th></tr></thead>
+        <tbody>
+          <tr><td>Power</td><td>12&nbsp;V at the rail, 5&nbsp;V out of the buck, 3V3 on the ESP32</td><td>Check the buck's output before anything else is connected to it</td></tr>
+          <tr><td>1-Wire</td><td>Boot log prints three ROM IDs</td><td>Confirm the 4.7&nbsp;k&Omega; pull-up and that RX <em>and</em> TX both reach DQ</td></tr>
+          <tr><td>Probe identity</td><td>Warm one probe in a closed hand; watch which ID moves</td><td>Record each ID in <code>DeviceConfig</code>. Never trust bus order.</td></tr>
+          <tr><td>I2C</td><td>Both SHT31s respond, at 0x44 and 0x45</td><td>Only one answering means the ADDR pin is unset on one board</td></tr>
+          <tr><td>Soil probe</td><td>Note raw counts in air, then in saturated Ytong</td><td>Those two numbers are the calibration. Higher counts mean <em>drier</em>.</td></tr>
+          <tr><td>Float switch</td><td>Continuity closes as the float rises</td><td>Verify LOW means full before the pump is ever enabled</td></tr>
+          <tr><td>MOSFETs</td><td>Each output switches a dummy load; all off at boot</td><td>A missing 10&nbsp;k&Omega; pulldown shows up as an output on during reset</td></tr>
+          <tr><td>Beams</td><td>Wave a card through each; counts increment independently</td><td>A high debounced-count ratio means dirty or misaligned optics</td></tr>
+          <tr><td>Rings</td><td>Each ring lights its own channel colour</td><td>All three lit the same means the chain order does not match riser order</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout danger">
+      <div class="eyebrow">Before the colony arrives</div>
+      <p>
+        Run the whole column empty for <strong>two weeks</strong>. Confirm the nest holds
+        79&ndash;83&nbsp;&deg;F overnight, that a refill cycle completes and the reservoir reads full,
+        that the substrate stabilises rather than trending, and that no fault has latched. Order the
+        colony only after that. The failures that matter in this system are slow ones, and two weeks
+        is the shortest window in which a slow failure becomes visible.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ EXPERIMENT ============ -->
+  <section id="experiment">
+    <h2>The experiment</h2>
+    <p>
+      Each riser mouth is lit from below through a frosted ring-window in the outworld floor, in one
+      of three channels, at a brightness that tracks that riser's own traffic. Traffic changes the
+      light at the choice point; the light may change the traffic.
+    </p>
+
+    <div class="callout">
+      <div class="eyebrow">What it actually measures</div>
+      <p>
+        Ants are most sensitive to UV and blue-green and are effectively <strong>blind to deep red</strong>.
+        So these are not three flavours of one stimulus &mdash; they are three very different ones. The
+        prediction is negative feedback on blue, weak feedback on green, and almost none on red, which
+        means <strong>traffic should drift toward whichever riser is currently showing red</strong>.
+      </p>
+    </div>
+
+    <p>
+      <span class="chanchip"><i style="background:var(--chan-r)"></i>Red &mdash; near-invisible, so near-zero deterrence</span><br>
+      <span class="chanchip"><i style="background:var(--chan-g)"></i>Green &mdash; visible, moderate deterrence</span><br>
+      <span class="chanchip"><i style="background:var(--chan-b)"></i>Blue &mdash; highly visible, strongest deterrence</span>
+    </p>
+
+    <h3>Three conditions, and one control that makes it mean anything</h3>
+    <ul>
+      <li><strong>Off</strong> &mdash; dark. Traffic logged with no light at all: the baseline.</li>
+      <li><strong>Fixed</strong> &mdash; every ring lit equally. Colour present, carrying no information
+        about traffic. This is what separates "ants respond to colour" from "ants respond to light
+        changing at all".</li>
+      <li><strong>Closed loop</strong> &mdash; the treatment.</li>
+    </ul>
+    <p>
+      The load-bearing control is the <strong>rotation</strong>: the riser-to-channel mapping advances
+      at local midnight on a three-day cycle, and every traffic row in the log carries the channel and
+      brightness that were in force when it was counted. Without it, "they prefer green" and "they
+      prefer the tube nearest the food dish" produce identical data and the experiment means nothing.
+      The dashboard shows both groupings side by side for exactly this reason.
+    </p>
+    <p>
+      A guaranteed dark period runs 22:00&ndash;07:00 local regardless of mode or activity, so the
+      colony always has the option of darkness.
+    </p>
+  </section>
+
+  <footer>
+    Firmware: <code>firmware/Formicarium.Controller</code> (.NET nanoFramework, C#) &middot;
+    control logic unit-tested on desktop via linked sources.
+    Dashboard: <code>dashboard/Formicarium.Dashboard</code> (Blazor Server) &middot;
+    runs against a colony simulator when no hardware is attached.
+    Full parts list and sourcing: <code>docs/bom.md</code>. Pin map: <code>docs/gpio-map.md</code>.
+  </footer>
+
+  </main>
+</div>
+</div>
+
+<script>
+/* ---------------- build steps ---------------- */
+const PHASES = [
+  ["Fabrication", [
+    ["Cut the four wall panels, base, two bay plates, outworld floor and lid from &frac14; in cast acrylic.", "Score-and-snap or a fine-tooth blade. Keep edges square — solvent welds need mating faces, not gaps."],
+    ["Dry-fit the whole box with tape before any solvent touches it.", "Every dimension error is free to fix now and permanent afterwards."],
+    ["Drill the three riser holes in the outworld floor and the nest ceiling, to the tube OD.", "Step drill, slow speed, backing board. Acrylic cracks if the bit grabs."],
+    ["Cut six collar washers from offcut.", "Two per riser: one against each face of each panel."],
+    ["Drill the bay top and bottom plates for cable glands, and the nest wall for the capped expansion port.", "All flat surfaces — that is the point of the square section."],
+    ["Solvent-weld the nest section: four walls plus base, Weld-On 4.", "Clamp square and let it cure fully. This is the containment boundary."],
+    ["Weld the risers through the outworld floor and nest ceiling, collar each side, fillet with Weld-On 16.", "Clamp while curing. This is the one joint that cannot be allowed to leak."],
+    ["Weld the bay walls to its own two plates, leaving the side access panel as a gasketed opening.", "You will need this panel again every time the ESP32 is reflashed."],
+    ["Bond the thermal break to the underside of the bay floor.", "The heater is below and heat rises; the bay should not soak."],
+    ["Cut the Ytong core to the internal section, and carve the galleries into the face that meets the acrylic.", "A spoon works. Every chamber you carve against the wall is a chamber you can see."],
+    ["Cut the reservoir well and set the core so one foot stands in it.", "That foot is the wick. Nothing pumps into the nest — the core draws."],
+    ["Build the ballasted base and seat the column in its pocket.", "Aim for a base at least 0.6 × overall height, then add mass low."],
+    ["Make the opaque sleeve so it lifts clear of the nest section.", "Dark by default, full view on demand."]
+  ]],
+  ["Electronics on the bench", [
+    ["Breadboard the ESP32 with power only. Confirm 12 V, 5 V and 3V3.", "Nothing else connected. A bad buck converter downstream of everything is a miserable diagnosis."],
+    ["Wire the 1-Wire bus: GPIO16 and GPIO17 both to DQ, 4.7 k&Omega; to 3V3.", "RX and TX tied together. This is not a normal one-pin sensor bus."],
+    ["Flash the firmware and read the boot log for three ROM IDs.", "No IDs almost always means the pull-up, not the probes."],
+    ["Identify each probe by warming it in a closed hand; record its ID in DeviceConfig.", "Do not rely on enumeration order — the failure is silent and slow."],
+    ["Add both SHT31s. Set one ADDR pin so they land on 0x44 and 0x45.", "Only one responding means the ADDR pin is still floating."],
+    ["Add the soil probe on GPIO34. Record raw counts in air and in wet Ytong.", "Those two numbers are the calibration. Remember higher means drier."],
+    ["Add the float switch on GPIO32 and confirm LOW when the float is up.", "Verify this before the pump can ever run."],
+    ["Add the four MOSFET stages with gate resistors and pulldowns; test each on a dummy load.", "Confirm every output is off during reset, not just after boot."],
+    ["Add the three beam pairs and check each counts independently.", "Wave a card. Watch the debounced ratio as well as the count."],
+    ["Add the WS2812B rings and confirm ring order matches riser order.", "Chain order is not riser order unless you make it so."]
+  ]],
+  ["Assembly", [
+    ["Transfer the breadboard circuit to perfboard with screw terminals and JST pigtails.", "Every module should disconnect without cutting anything."],
+    ["Mount the perfboard, both pumps and the rings in the bay; align rings under the ring-windows.", "The rings never cross the boundary — only their light does."],
+    ["Wrap the heat cable around the outside of the nest section and sleeve it.", "No penetration, no moisture on the heater, no ant contact."],
+    ["Run the nest bundle down through the bay floor and the outworld bundle up through its ceiling.", "Service loop and a clamp at both ends of every run."],
+    ["Stack the modules, gasket and clamp the flanges.", "Hand tight and even. You are compressing a gasket, not making a press fit."],
+    ["Fit the lid with stainless mesh, and lay the Fluon band on the inner wall below the rim.", "Fluon is the only thing standing between you and loose Tetramorium. Do not skip it."],
+    ["Fill the supply jar, power up, and let a refill cycle complete.", "Watch for the reservoir to read full and the pump to stop on its own."]
+  ]],
+  ["Commissioning", [
+    ["Run empty for two weeks. Confirm temperature holds overnight, hydration stabilises, no fault latches.", "The failures that matter here are slow. Two weeks is the shortest window that shows one."],
+    ["Set the lighting mode to Off and log a few days of baseline traffic before introducing light.", "You cannot recover a baseline after the fact."],
+    ["Introduce the colony through the outworld lid, then leave it alone for a week.", "Order the colony only once the column has already proved itself."]
+  ]]
+];
+
+const KEY = "formicarium.steps.v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { state = {}; }
+
+const root = document.getElementById("stepsroot");
+let n = 0;
+const boxes = [];
+
+PHASES.forEach(([phase, items]) => {
+  const h = document.createElement("div");
+  h.className = "phase";
+  h.textContent = phase;
+  root.appendChild(h);
+
+  const ol = document.createElement("ul");
+  ol.className = "steps";
+
+  items.forEach(([text, note]) => {
+    n += 1;
+    const id = "s" + n;
+    const li = document.createElement("li");
+    li.innerHTML =
+      '<label><input type="checkbox" id="' + id + '">' +
+      '<span class="stepnum">' + String(n).padStart(2, "0") + '</span>' +
+      '<span class="body"><strong>' + text + '</strong><em>' + note + '</em></span></label>';
+    ol.appendChild(li);
+
+    const box = li.querySelector("input");
+    box.checked = !!state[id];
+    box.addEventListener("change", () => { state[id] = box.checked; save(); tally(); });
+    boxes.push(box);
+  });
+
+  root.appendChild(ol);
+});
+
+document.getElementById("total").textContent = n;
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private window: progress just won't persist */ }
+}
+
+function tally() {
+  const done = boxes.filter(b => b.checked).length;
+  document.getElementById("done").textContent = done;
+  document.getElementById("bar").style.width = (done / boxes.length * 100) + "%";
+}
+
+document.getElementById("reset").addEventListener("click", () => {
+  boxes.forEach(b => { b.checked = false; });
+  state = {};
+  save();
+  tally();
+});
+
+tally();
+
+/* ---------------- 3D blueprint ---------------- */
+const ASSEMBLIES = [
+  { id: "lid",   name: "Vented lid",      note: "mesh <0.5 mm, Fluon rim",  color: 0x8896a6 },
+  { id: "out",   name: "Outworld",        note: "8 in · dish + ring-windows", color: 0x6f9ec4 },
+  { id: "bay",   name: "Electronics bay", note: "4 in · sealed, side access", color: 0xc98b3f },
+  { id: "riser", name: "Risers ×3",       note: "½ in OD, bypass the bay",  color: 0xd98324 },
+  { id: "nest",  name: "Nest",            note: "12 in · Ytong core",        color: 0xb0a68f },
+  { id: "res",   name: "Reservoir",       note: "131 mL, wicks up",          color: 0x4f86d6 },
+  { id: "base",  name: "Ballasted base",  note: "16 in sq",                  color: 0x5d6b7a }
+];
+
+const keyList = document.getElementById("key");
+ASSEMBLIES.forEach(a => {
+  const li = document.createElement("li");
+  li.innerHTML = '<button type="button" aria-pressed="false" data-id="' + a.id + '">' +
+    '<i style="background:#' + a.color.toString(16).padStart(6, "0") + '"></i>' +
+    '<span>' + a.name + '<small>' + a.note + '</small></span></button>';
+  keyList.appendChild(li);
+});
+
+const canvas = document.getElementById("stage");
+
+if (typeof THREE === "undefined") {
+  canvas.remove();
+  const p = document.createElement("div");
+  p.className = "fallback";
+  p.innerHTML = "<strong>3D view unavailable offline.</strong> The blueprint needs Three.js from a CDN. " +
+    "Every dimension it shows is in the side elevation and the key figures above.";
+  document.querySelector(".viewer").prepend(p);
+} else {
+  buildScene();
+}
+
+function buildScene() {
+  const scene = new THREE.Scene();
+  const groups = {};
+  const meshes = [];
+
+  // Inches, scaled so the whole column is a comfortable unit height.
+  const S = 0.12;
+  const W = 6.5 * S, IW = 6 * S;
+
+  function box(w, h, d, color, opacity) {
+    const geo = new THREE.BoxGeometry(w, h, d);
+    const mat = new THREE.MeshStandardMaterial({
+      color: color, transparent: opacity < 1, opacity: opacity,
+      roughness: 0.55, metalness: 0.05
+    });
+    return new THREE.Mesh(geo, mat);
+  }
+
+  function group(id, y) {
+    const g = new THREE.Group();
+    g.position.y = y;
+    g.userData.baseY = y;
+    scene.add(g);
+    groups[id] = g;
+    return g;
+  }
+
+  function add(g, mesh, id) {
+    mesh.userData.assembly = id;
+    g.add(mesh);
+    meshes.push(mesh);
+  }
+
+  // base
+  const gBase = group("base", 0);
+  add(gBase, box(16 * S, 1 * S, 16 * S, 0x5d6b7a, 1), "base");
+
+  // nest: shell, ytong core, reservoir
+  const nestH = 12 * S;
+  const gNest = group("nest", 0.5 * S + nestH / 2);
+  const nestShell = box(W, nestH, W, 0x9fc2d8, 0.24);
+  add(gNest, nestShell, "nest");
+  add(gNest, box(5.4 * S, 10.4 * S, 5.4 * S, 0xb0a68f, 0.95), "nest");
+  const gRes = group("res", 0.5 * S + nestH / 2);
+  const res = box(2 * S, 2 * S, 2 * S, 0x4f86d6, 0.85);
+  res.position.set(-1.8 * S, -nestH / 2 + 1.1 * S, -1.8 * S);
+  add(gRes, res, "res");
+
+  // sleeve
+  const sleeve = box(W + 0.12 * S, nestH, W + 0.12 * S, 0x1b2430, 0.9);
+  sleeve.userData.assembly = "nest";
+  gNest.add(sleeve);
+
+  // bay
+  const bayH = 4 * S;
+  const gBay = group("bay", 0.5 * S + nestH + bayH / 2);
+  add(gBay, box(W, bayH, W, 0xc98b3f, 0.55), "bay");
+
+  // outworld
+  const outH = 8 * S;
+  const gOut = group("out", 0.5 * S + nestH + bayH + outH / 2);
+  add(gOut, box(W, outH, W, 0x6f9ec4, 0.2), "out");
+  // ring-windows in the floor
+  const ringColors = [0xd4614a, 0x6fa860, 0x4f86d6];
+  const ringX = [-1.9 * S, 0, 1.9 * S];
+  for (let i = 0; i < 3; i++) {
+    const ring = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.42 * S, 0.42 * S, 0.12 * S, 20),
+      new THREE.MeshStandardMaterial({ color: ringColors[i], emissive: ringColors[i], emissiveIntensity: 0.55, roughness: 0.4 })
+    );
+    ring.position.set(ringX[i], -outH / 2 + 0.1 * S, 1.6 * S);
+    add(gOut, ring, "out");
+  }
+  // dish
+  const dish = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.75 * S, 0.75 * S, 0.35 * S, 22),
+    new THREE.MeshStandardMaterial({ color: 0xdedad0, roughness: 0.7 })
+  );
+  dish.position.set(-1.2 * S, -outH / 2 + 0.22 * S, -1.5 * S);
+  add(gOut, dish, "out");
+
+  // lid
+  const gLid = group("lid", 0.5 * S + nestH + bayH + outH + 0.25 * S);
+  add(gLid, box(W + 0.3 * S, 0.5 * S, W + 0.3 * S, 0x8896a6, 1), "lid");
+
+  // risers: outworld floor down past the bay into the nest ceiling
+  const gRiser = group("riser", 0);
+  const riserBottom = 0.5 * S + nestH - 0.6 * S;
+  const riserTop = 0.5 * S + nestH + bayH + 0.6 * S;
+  const riserLen = riserTop - riserBottom;
+  const offsets = [
+    [0, W / 2 + 0.34 * S],
+    [-(W / 2 + 0.34 * S), 0],
+    [W / 2 + 0.34 * S, 0]
+  ];
+  offsets.forEach(([x, z]) => {
+    const tube = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28 * S, 0.28 * S, riserLen, 16),
+      new THREE.MeshStandardMaterial({ color: 0xd98324, transparent: true, opacity: 0.75, roughness: 0.35 })
+    );
+    tube.position.set(x, riserBottom + riserLen / 2, z);
+    add(gRiser, tube, "riser");
+  });
+
+  // lighting + camera
+  scene.add(new THREE.AmbientLight(0xffffff, 0.62));
+  const key = new THREE.DirectionalLight(0xffffff, 0.85);
+  key.position.set(4, 7, 5);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xaaccff, 0.35);
+  fill.position.set(-5, 2, -4);
+  scene.add(fill);
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // Hand-rolled orbit: OrbitControls is not part of the Three UMD build, and one extra
+  // dependency for thirty lines of spherical maths is not a good trade.
+  let yaw = 0.72, pitch = 0.22, dist = 5.4;
+  const target = new THREE.Vector3(0, 0.5 + nestH / 2 + 0.2, 0);
+  let dragging = false, lastX = 0, lastY = 0;
+
+  function place() {
+    camera.position.set(
+      target.x + dist * Math.cos(pitch) * Math.sin(yaw),
+      target.y + dist * Math.sin(pitch),
+      target.z + dist * Math.cos(pitch) * Math.cos(yaw)
+    );
+    camera.lookAt(target);
+  }
+
+  canvas.addEventListener("pointerdown", e => { dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointerup", e => { dragging = false; try { canvas.releasePointerCapture(e.pointerId); } catch (err) {} });
+  canvas.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    yaw -= (e.clientX - lastX) * 0.008;
+    pitch = Math.max(-0.5, Math.min(1.25, pitch + (e.clientY - lastY) * 0.006));
+    lastX = e.clientX; lastY = e.clientY;
+    place();
+  });
+  canvas.addEventListener("wheel", e => {
+    e.preventDefault();
+    dist = Math.max(2.6, Math.min(11, dist + Math.sign(e.deltaY) * 0.35));
+    place();
+  }, { passive: false });
+
+  function resize() {
+    const w = canvas.clientWidth || 600;
+    const h = canvas.clientHeight || 460;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+
+  window.addEventListener("resize", () => { resize(); place(); render(); });
+
+  let exploded = false, sleeveOn = true, isolated = null;
+
+  function applyState() {
+    Object.keys(groups).forEach(id => {
+      const g = groups[id];
+      const spread = exploded ? ({ lid: 1.5, out: 1.0, bay: 0.5, riser: 0.5, nest: 0, res: -0.35, base: 0 })[id] : 0;
+      g.position.y = g.userData.baseY + spread;
+    });
+
+    sleeve.visible = sleeveOn;
+
+    meshes.forEach(m => {
+      const dim = isolated && m.userData.assembly !== isolated;
+      m.material.transparent = true;
+      m.material.opacity = dim ? 0.07 : (m.userData.baseOpacity !== undefined ? m.userData.baseOpacity : m.material.opacity);
+    });
+
+    render();
+  }
+
+  meshes.forEach(m => { m.userData.baseOpacity = m.material.opacity; });
+  sleeve.userData.baseOpacity = sleeve.material.opacity;
+
+  document.getElementById("explode").addEventListener("click", e => {
+    exploded = !exploded;
+    e.currentTarget.setAttribute("aria-pressed", String(exploded));
+    applyState();
+  });
+
+  document.getElementById("sleeve").addEventListener("click", e => {
+    sleeveOn = !sleeveOn;
+    e.currentTarget.setAttribute("aria-pressed", String(sleeveOn));
+    applyState();
+  });
+
+  document.getElementById("recentre").addEventListener("click", () => {
+    yaw = 0.72; pitch = 0.22; dist = 5.4;
+    isolated = null;
+    keyList.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", "false"));
+    place(); applyState();
+  });
+
+  keyList.addEventListener("click", e => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    isolated = isolated === id ? null : id;
+    keyList.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === isolated)));
+    applyState();
+  });
+
+  function render() { renderer.render(scene, camera); }
+
+  resize();
+  place();
+  applyState();
+}
+</script>

@@ -1,0 +1,68 @@
+@inject ColonyMonitor Monitor
+@inject IFormicariumClient Client
+
+<div class="status">
+    @if (Monitor.Latest is null)
+    {
+        <span class="pill lost">No contact</span>
+        <span>Waiting for the column to answer.</span>
+    }
+    else if (Monitor.Unreachable)
+    {
+        <span class="pill lost">Lost contact</span>
+        <span>
+            Showing the last reading from <strong>@Ago(Monitor.LastContact)</strong>.
+            The column keeps running without the network — only this view is stale.
+        </span>
+    }
+    else if (Client.IsSimulated)
+    {
+        <span class="pill sim">Simulated</span>
+        <span>
+            No hardware attached. The real firmware control loop is running against a modelled colony
+            at <strong>@FakeFormicariumClient.SpeedFactor.ToString("0")&times;</strong> speed.
+        </span>
+    }
+    else
+    {
+        <span class="pill live">Live</span>
+        <span>Controller up <strong>@Uptime(Monitor.Latest.UptimeSeconds)</strong></span>
+    }
+
+    @if (Monitor.Latest is { } state)
+    {
+        <span class="sep">|</span>
+        <span>Lighting <strong>@((LightingMode)state.LightingMode)</strong>@(state.LightCurfewActive ? " (curfew)" : "")</span>
+
+        @if (state.ServiceMode)
+        {
+            <span class="sep">|</span>
+            <span class="pill lost">Service mode</span>
+        }
+    }
+</div>
+
+@code {
+    private static string Uptime(long seconds)
+    {
+        var span = TimeSpan.FromSeconds(seconds);
+
+        if (span.TotalDays >= 1)
+        {
+            return $"{(int)span.TotalDays}d {span.Hours}h";
+        }
+
+        return span.TotalHours >= 1 ? $"{(int)span.TotalHours}h {span.Minutes}m" : $"{span.Minutes}m";
+    }
+
+    private static string Ago(DateTimeOffset? at)
+    {
+        if (at is null)
+        {
+            return "never";
+        }
+
+        var span = DateTimeOffset.UtcNow - at.Value;
+        return span.TotalMinutes < 1 ? "moments ago" : $"{(int)span.TotalMinutes} min ago";
+    }
+}

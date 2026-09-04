@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup Label="Globals">
+    <NanoFrameworkProjectSystemPath>$(MSBuildExtensionsPath)\nanoFramework\v1.0\</NanoFrameworkProjectSystemPath>
+  </PropertyGroup>
+  <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.Default.props" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.Default.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectTypeGuids>{11A8DD76-328B-46DF-9F39-F559912D0360};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>a3f5c1d2-8b47-4e6a-9d31-7c0e5b2a4f18</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <FileAlignment>512</FileAlignment>
+    <RootNamespace>Formicarium.Controller</RootNamespace>
+    <AssemblyName>Formicarium.Controller</AssemblyName>
+    <TargetFrameworkVersion>v1.0</TargetFrameworkVersion>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.props" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.props')" />
+  <ItemGroup>
+    <!--
+      Core is hardware-free and is shared verbatim with Formicarium.Controller.Tests, which
+      links these same files into a desktop test project. That is what allows the exact source
+      that runs on the ESP32 to be exercised by a normal test runner.
+    -->
+    <Compile Include="Core\Actuation\IActuatorSet.cs" />
+    <Compile Include="Core\Config\PinMap.cs" />
+    <Compile Include="Core\Config\Setpoints.cs" />
+    <Compile Include="Core\Control\ControlLoop.cs" />
+    <Compile Include="Core\Control\FeedScheduler.cs" />
+    <Compile Include="Core\Control\HysteresisController.cs" />
+    <Compile Include="Core\Control\LightingController.cs" />
+    <Compile Include="Core\Control\HydrationController.cs" />
+    <Compile Include="Core\Control\SafetyWatchdog.cs" />
+    <Compile Include="Core\Sensing\IClock.cs" />
+    <Compile Include="Core\Sensing\Reading.cs" />
+    <Compile Include="Core\Sensing\RiserTrafficCounter.cs" />
+    <Compile Include="Core\Sensing\SensorSnapshot.cs" />
+    <Compile Include="Core\State\DeviceState.cs" />
+    <!-- Hardware-facing. Nothing above this line knows what a GPIO is. -->
+    <Compile Include="Config\DeviceConfig.cs" />
+    <Compile Include="Hardware\Esp32ActuatorSet.cs" />
+    <Compile Include="Hardware\Esp32SensorSet.cs" />
+    <Compile Include="Net\FallbackPage.cs" />
+    <Compile Include="Net\HttpApiServer.cs" />
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
+  <ProjectExtensions>
+    <ProjectCapabilities>
+      <ProjectConfigurationsDeclaredAsItems />
+    </ProjectCapabilities>
+  </ProjectExtensions>
+</Project>

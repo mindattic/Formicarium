@@ -1,0 +1,168 @@
+@page "/traffic"
+@rendermode InteractiveServer
+@inject TelemetryStore Store
+@inject ColonyMonitor Monitor
+
+<PageTitle>Formicarium — Traffic</PageTitle>
+
+<h1>Traffic</h1>
+<p class="lede">
+    Crossings counted at each riser, read two ways. Ants are most sensitive to UV and blue-green
+    and effectively blind to deep red, so the three channels are three very different stimulus
+    strengths rather than three flavours of the same one. The prediction is that traffic drifts
+    toward whichever riser is currently showing red.
+</p>
+
+<StatusStrip />
+
+<h2>By colour</h2>
+<p class="lede">
+    This is only meaningful because the assignment rotates at local midnight: every riser spends
+    equal time on every channel, so a difference here cannot be explained by one tube simply
+    being better placed.
+</p>
+
+@if (_channelTotals is null)
+{
+    <div class="empty">Loading…</div>
+}
+else if (_channelTotals.Sum(t => t.Crossings) == 0)
+{
+    <div class="empty">
+        No crossings logged yet. The log is written every 30 seconds once the column is answering.
+    </div>
+}
+else
+{
+    var max = Math.Max(1, _channelTotals.Max(t => t.Crossings));
+
+    <div class="chart">
+        @foreach (var total in _channelTotals.OrderBy(t => t.Channel))
+        {
+            var share = (double)total.Crossings / _channelTotals.Sum(t => t.Crossings);
+
+            <div style="margin-bottom:.85rem">
+                <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:.25rem">
+                    <span style="display:inline-flex;align-items:center;gap:.45rem">
+                        <span class="swatch" style="width:.7rem;height:.7rem;border-radius:2px;background:@Channels.Css(total.Channel)"></span>
+                        @Channels.Name(total.Channel)
+                    </span>
+                    <span style="font-variant-numeric:tabular-nums">
+                        @total.Crossings.ToString("N0") &nbsp;<span style="color:var(--ink-faint)">@((share * 100).ToString("0.0"))%</span>
+                    </span>
+                </div>
+                <div class="meter" style="height:8px;background:#241f1b;border-radius:2px;overflow:hidden">
+                    <i style="display:block;height:100%;width:@((total.Crossings * 100.0 / max).ToString("0.0"))%;background:@Channels.Css(total.Channel)"></i>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<h2>By tube — the positional confound</h2>
+<p class="lede">
+    The same crossings grouped the other way. If one tube dominates here but the colours above are
+    level, the light is doing nothing and you are only measuring which tube happens to sit nearest
+    the food dish. Both readings are needed; either alone is misleading.
+</p>
+
+@if (_riserTotals is null)
+{
+    <div class="empty">Loading…</div>
+}
+else if (_riserTotals.Count == 0)
+{
+    <div class="empty">No crossings logged yet.</div>
+}
+else
+{
+    <div class="scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tube</th>
+                    <th class="num">Red</th>
+                    <th class="num">Green</th>
+                    <th class="num">Blue</th>
+                    <th class="num">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var group in _riserTotals.GroupBy(t => t.Riser).OrderBy(g => g.Key))
+                {
+                    <tr>
+                        <td>Riser @(group.Key + 1)</td>
+                        <td class="num">@Cell(group, 0)</td>
+                        <td class="num">@Cell(group, 1)</td>
+                        <td class="num">@Cell(group, 2)</td>
+                        <td class="num"><strong>@group.Sum(t => t.Crossings).ToString("N0")</strong></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<h2>Right now</h2>
+@if (Monitor.Latest is { } state)
+{
+    <div class="scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tube</th>
+                    <th>Showing</th>
+                    <th class="num">Brightness</th>
+                    <th class="num">Rate / min</th>
+                    <th class="num">Since boot</th>
+                    <th class="num">Debounced</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (var riser = 0; riser < state.RiserCounts.Length; riser++)
+                {
+                    var channel = riser < state.RiserChannel.Length ? state.RiserChannel[riser] : 0;
+                    <tr>
+                        <td>Riser @(riser + 1)</td>
+                        <td>
+                            <span style="display:inline-flex;align-items:center;gap:.45rem">
+                                <span style="width:.7rem;height:.7rem;border-radius:2px;background:@Channels.Css(channel)"></span>
+                                @Channels.Name(channel)
+                            </span>
+                        </td>
+                        <td class="num">@((At(state.RiserBrightness, riser) * 100).ToString("0"))%</td>
+                        <td class="num">@At(state.RiserRatesPerMinute, riser).ToString("0.0")</td>
+                        <td class="num">@state.RiserCounts[riser].ToString("N0")</td>
+                        <td class="num">@AtLong(state.RiserDebouncedCounts, riser).ToString("N0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="hint">
+        A high debounced count relative to accepted crossings means the beam is dirty or misaligned
+        rather than that the colony is busy — one ant chatters the receiver several times as its
+        legs and antennae clear the gap, and the debounce is what collapses that back to one.
+    </p>
+}
+
+@code {
+    private IReadOnlyList<ChannelTotal>? _channelTotals;
+    private IReadOnlyList<RiserDayTotal>? _riserTotals;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _channelTotals = await Store.GetChannelTotalsAsync();
+        _riserTotals = await Store.GetRiserTotalsAsync();
+    }
+
+    private static string Cell(IEnumerable<RiserDayTotal> group, int channel)
+    {
+        var match = group.FirstOrDefault(t => t.Channel == channel);
+        return match is null ? "—" : match.Crossings.ToString("N0");
+    }
+
+    private static double At(double[] values, int index) => index < values.Length ? values[index] : 0;
+
+    private static long AtLong(long[] values, int index) => index < values.Length ? values[index] : 0;
+}

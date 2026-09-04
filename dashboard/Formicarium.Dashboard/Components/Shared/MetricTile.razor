@@ -1,0 +1,62 @@
+<div class="tile @(Ok ? "" : "dead")">
+    <div class="label">@Label</div>
+    <div class="value">
+        @if (Ok)
+        {
+            @Primary()<span class="unit">@PrimaryUnit()</span>
+        }
+        else
+        {
+            <text>—</text>
+        }
+    </div>
+    <div class="sub">@(Ok ? Secondary() : "sensor unusable")</div>
+</div>
+
+@code {
+    public enum Unit
+    {
+        Temperature,
+        Percent
+    }
+
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    [Parameter] public double Value { get; set; }
+
+    /// <summary>
+    /// When false the value is not shown at all.
+    ///
+    /// This is the whole reason the firmware publishes an explicit Ok flag next to every reading:
+    /// a failed sensor must not be able to render as a plausible number. Showing a dash is
+    /// unhelpful for a moment; showing "21.0 °C" from a probe that fell out of the substrate is
+    /// unhelpful for a week.
+    /// </summary>
+    [Parameter] public bool Ok { get; set; }
+
+    [Parameter] public Unit Kind { get; set; } = Unit.Temperature;
+
+    [Parameter] public string? Note { get; set; }
+
+    private string Primary() => Kind switch
+    {
+        // Fahrenheit leads because the husbandry target everyone quotes for this species is
+        // 79-83 F, and silently making the reader convert invites mistakes.
+        Unit.Temperature => (Value * 9.0 / 5.0 + 32.0).ToString("0.0"),
+        _ => Value.ToString("0")
+    };
+
+    private string PrimaryUnit() => Kind == Unit.Temperature ? " °F" : " %";
+
+    private string Secondary()
+    {
+        var detail = Kind == Unit.Temperature ? $"{Value:0.0} °C" : null;
+
+        if (detail is null)
+        {
+            return Note ?? string.Empty;
+        }
+
+        return string.IsNullOrEmpty(Note) ? detail : $"{detail} · {Note}";
+    }
+}

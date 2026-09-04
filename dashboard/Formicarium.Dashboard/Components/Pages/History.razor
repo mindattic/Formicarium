@@ -1,0 +1,225 @@
+@page "/history"
+@rendermode InteractiveServer
+@inject TelemetryStore Store
+
+<PageTitle>Formicarium — History</PageTitle>
+
+<h1>History</h1>
+<p class="lede">
+    Logged every 30 seconds to a local SQLite file. Failed sensor reads are stored as NULL rather
+    than as a value, so gaps in these traces are genuine gaps and averages never quietly include
+    a zero from a probe that had fallen out.
+</p>
+
+<div class="controls" style="margin-bottom:1.25rem">
+    @foreach (var option in Windows)
+    {
+        <button class="@(_window == option.Value ? "selected" : "")" @onclick="() => Select(option.Value)">
+            @option.Label
+        </button>
+    }
+</div>
+
+@if (_points is null)
+{
+    <div class="empty">Loading…</div>
+}
+else if (_points.Count < 2)
+{
+    <div class="empty">
+        Not enough samples yet for this window. The log needs a minute or two of running to draw anything.
+    </div>
+}
+else
+{
+    <div class="chart">
+        @RenderChart(
+            "Temperature (°F)",
+            [
+                new Series("Nest bottom", "#c9a227", _points.Select(p => ToF(p.NestBottomC)).ToArray()),
+                new Series("Nest top", "#d99a3a", _points.Select(p => ToF(p.NestTopC)).ToArray()),
+                new Series("Outworld", "#5b8dd9", _points.Select(p => ToF(p.OutworldC)).ToArray())
+            ])
+    </div>
+
+    <div class="chart" style="margin-top:1rem">
+        @RenderChart(
+            "Substrate moisture (%)",
+            [
+                new Series("Soil", "#7fb069", _points.Select(p => p.SoilPct).ToArray())
+            ])
+    </div>
+
+    <p class="hint">
+        Sawtooth in the temperature trace is normal and desirable: it is the heater's deadband plus
+        its minimum dwell doing their job. A trace that looks like a razor is chatter, and means the
+        deadband is too narrow for the noise on the probe.
+    </p>
+}
+
+@code {
+    private sealed record Series(string Name, string Colour, double?[] Values);
+
+    private static readonly (string Label, TimeSpan Value)[] Windows =
+    [
+        ("1 hour", TimeSpan.FromHours(1)),
+        ("6 hours", TimeSpan.FromHours(6)),
+        ("24 hours", TimeSpan.FromHours(24)),
+        ("7 days", TimeSpan.FromDays(7))
+    ];
+
+    private TimeSpan _window = TimeSpan.FromHours(6);
+    private IReadOnlyList<TrendPoint>? _points;
+
+    protected override Task OnInitializedAsync() => Load();
+
+    private async Task Select(TimeSpan window)
+    {
+        _window = window;
+        _points = null;
+        await Load();
+    }
+
+    private async Task Load() => _points = await Store.GetTrendAsync(_window);
+
+    private static double? ToF(double? celsius) => celsius is null ? null : celsius * 9.0 / 5.0 + 32.0;
+
+    /// <summary>
+    /// Hand-rolled inline SVG rather than a charting library.
+    ///
+    /// These are a handful of line traces with gaps. A charting dependency would add a JS bundle,
+    /// an interop boundary and a theme to fight, and would still need custom handling for the one
+    /// thing that actually matters here — that a missing sample must break the line rather than
+    /// interpolate across it, because interpolating over a dead sensor invents data.
+    /// </summary>
+    private RenderFragment RenderChart(string title, Series[] series) => builder =>
+    {
+        const int Width = 1000;
+        const int Height = 220;
+        const int PadLeft = 44;
+        const int PadRight = 12;
+        const int PadTop = 12;
+        const int PadBottom = 24;
+
+        var all = series.SelectMany(s => s.Values).Where(v => v.HasValue).Select(v => v!.Value).ToArray();
+
+        if (all.Length == 0)
+        {
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "class", "empty");
+            builder.AddContent(2, $"{title}: no valid samples in this window.");
+            builder.CloseElement();
+            return;
+        }
+
+        var min = all.Min();
+        var max = all.Max();
+
+        if (max - min < 1.0)
+        {
+            var mid = (max + min) / 2.0;
+            min = mid - 0.5;
+            max = mid + 0.5;
+        }
+
+        var pad = (max - min) * 0.12;
+        min -= pad;
+        max += pad;
+
+        var count = series[0].Values.Length;
+
+        double X(int i) => PadLeft + (Width - PadLeft - PadRight) * (count == 1 ? 0 : (double)i / (count - 1));
+        double Y(double v) => PadTop + (Height - PadTop - PadBottom) * (1 - (v - min) / (max - min));
+
+        var seq = 0;
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "style", "font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.5rem");
+        builder.AddContent(seq++, title);
+        builder.CloseElement();
+
+        builder.OpenElement(seq++, "svg");
+        builder.AddAttribute(seq++, "viewBox", $"0 0 {Width} {Height}");
+        builder.AddAttribute(seq++, "role", "img");
+        builder.AddAttribute(seq++, "aria-label", title);
+
+        // Gridlines and axis labels
+        for (var g = 0; g <= 4; g++)
+        {
+            var value = min + (max - min) * g / 4.0;
+            var y = Y(value);
+
+            builder.OpenElement(seq++, "line");
+            builder.AddAttribute(seq++, "x1", PadLeft);
+            builder.AddAttribute(seq++, "x2", Width - PadRight);
+            builder.AddAttribute(seq++, "y1", y.ToString("0.##"));
+            builder.AddAttribute(seq++, "y2", y.ToString("0.##"));
+            builder.AddAttribute(seq++, "stroke", "#2a2520");
+            builder.AddAttribute(seq++, "stroke-width", "1");
+            builder.CloseElement();
+
+            builder.OpenElement(seq++, "text");
+            builder.AddAttribute(seq++, "x", PadLeft - 8);
+            builder.AddAttribute(seq++, "y", (y + 4).ToString("0.##"));
+            builder.AddAttribute(seq++, "fill", "#6b625a");
+            builder.AddAttribute(seq++, "font-size", "11");
+            builder.AddAttribute(seq++, "text-anchor", "end");
+            builder.AddContent(seq++, value.ToString("0.0"));
+            builder.CloseElement();
+        }
+
+        foreach (var s in series)
+        {
+            // Each unbroken run of valid samples becomes its own polyline, so a dead sensor leaves
+            // a visible hole instead of a straight line across the outage.
+            var run = new List<string>();
+
+            void Flush()
+            {
+                if (run.Count > 1)
+                {
+                    builder.OpenElement(seq++, "polyline");
+                    builder.AddAttribute(seq++, "points", string.Join(" ", run));
+                    builder.AddAttribute(seq++, "fill", "none");
+                    builder.AddAttribute(seq++, "stroke", s.Colour);
+                    builder.AddAttribute(seq++, "stroke-width", "1.6");
+                    builder.AddAttribute(seq++, "stroke-linejoin", "round");
+                    builder.CloseElement();
+                }
+
+                run.Clear();
+            }
+
+            for (var i = 0; i < s.Values.Length; i++)
+            {
+                if (s.Values[i] is { } value)
+                {
+                    run.Add($"{X(i):0.##},{Y(value):0.##}");
+                }
+                else
+                {
+                    Flush();
+                }
+            }
+
+            Flush();
+        }
+
+        builder.CloseElement();
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class", "legend");
+
+        foreach (var s in series)
+        {
+            builder.OpenElement(seq++, "span");
+            builder.OpenElement(seq++, "i");
+            builder.AddAttribute(seq++, "style", $"background:{s.Colour}");
+            builder.CloseElement();
+            builder.AddContent(seq++, s.Name);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+}

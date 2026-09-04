@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <Version>1.0.0</Version>
+    <RootNamespace>Formicarium.Dashboard</RootNamespace>
+    <!--
+      The linked Core sources target nanoFramework, which has no nullable reference types, so
+      they carry no annotations. Suppressing the nullability warnings for the build as a whole
+      is the price of compiling the firmware's real control logic here instead of writing a
+      second, subtly different copy of it for the simulator to use.
+    -->
+    <NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8625</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The same files the ESP32 runs. The dashboard's simulator drives the genuine ControlLoop, so
+      what is shown on screen is the shipped firmware policy reacting to a modelled colony rather
+      than a second implementation that merely agrees with it.
+    -->
+    <Compile Include="..\..\firmware\Formicarium.Controller\Core\**\*.cs" LinkBase="Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
+  </ItemGroup>
+
+</Project>

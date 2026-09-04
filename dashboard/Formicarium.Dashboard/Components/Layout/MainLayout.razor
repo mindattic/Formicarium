@@ -1,0 +1,26 @@
+@inherits LayoutComponentBase
+
+<div class="shell">
+    <header class="shell-head">
+        <a class="brand" href="">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span class="brand-text">Formicarium</span>
+        </a>
+        <nav class="shell-nav">
+            <NavLink class="nav-tab" href="" Match="NavLinkMatch.All">Live</NavLink>
+            <NavLink class="nav-tab" href="traffic">Traffic</NavLink>
+            <NavLink class="nav-tab" href="history">History</NavLink>
+            <NavLink class="nav-tab" href="camera">Camera</NavLink>
+        </nav>
+    </header>
+
+    <main class="shell-body">
+        @Body
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

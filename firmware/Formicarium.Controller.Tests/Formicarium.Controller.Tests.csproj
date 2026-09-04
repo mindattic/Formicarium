@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <Version>1.0.0</Version>
+    <!--
+      The Core sources are shared verbatim with the nanoFramework project rather than
+      referenced through a compiled assembly. nanoFramework targets its own mscorlib, so a
+      normal ProjectReference is impossible; linking the sources is what lets the exact code
+      that ships to the ESP32 also run under a desktop test runner.
+
+      The constraint this imposes on Core is deliberate and worth keeping: no LINQ, no generic
+      collections, no APIs missing from the nanoFramework base class library. Anything that
+      compiles here and there is safe on both.
+    -->
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Formicarium.Controller\Core\**\*.cs" LinkBase="Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

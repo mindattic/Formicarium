@@ -1,0 +1,8 @@
+bin/
+obj/
+*.user
+*.db
+*.db-shm
+*.db-wal
+.vs/
+.claude/quicksave.md
