@@ -7,16 +7,13 @@ namespace Formicarium.Core.Control
     /// <summary>
     /// Keeps the passive hydration reservoir topped up.
     ///
-    /// This replaced a controller that pumped water directly into the nest substrate, and the
-    /// reason is worth recording, because it is the same argument that removed the servo gate.
+    /// A pump aimed at a sealed, drainless nest would be the largest single point of failure in
+    /// this system. A maximum-runtime limit bounds it in <i>software</i>, which is no help at all
+    /// against the failures that actually flood a nest: a MOSFET that fails short, a pump head
+    /// that jams open, or a reservoir mounted above the nest quietly siphoning through a stopped
+    /// pump. None of those are things firmware gets a vote on.
     ///
-    /// With the gate gone, a pump aimed at a sealed, drainless nest was the largest remaining
-    /// single point of failure. A maximum-runtime limit bounds it in <i>software</i>, which is
-    /// no help at all against the failures that actually flood a nest: a MOSFET that fails
-    /// short, a pump head that jams open, or a reservoir mounted above the nest quietly
-    /// siphoning through a stopped pump. None of those are things firmware gets a vote on.
-    ///
-    /// So the pump no longer touches the nest. It fills a small reservoir that wicks into the
+    /// So the pump never touches the nest. It fills a small reservoir that wicks into the
     /// Ytong nest core, and that reservoir holds less water than would harm the colony even if
     /// the whole thing emptied into the nest at once. The guarantee moved out of the code and
     /// into the geometry, where it cannot be defeated by an electrical fault.

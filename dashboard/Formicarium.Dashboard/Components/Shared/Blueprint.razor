@@ -1,0 +1,57 @@
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@*
+    The host element is left empty on purpose: the viewer builds its own DOM inside it. Blazor
+    never re-renders this component after the first paint, so there is no diff to fight with the
+    markup the module writes — and keeping the legend in the module means the assembly list and
+    the meshes it toggles are declared in one place instead of two.
+*@
+<div class="build-viewer" @ref="_root">
+    <div class="build-fallback">Loading the blueprint…</div>
+</div>
+
+@code {
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+    private IJSObjectReference? _viewer;
+
+    protected override bool ShouldRender() => _module is null;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/blueprint.js");
+        _viewer = await _module.InvokeAsync<IJSObjectReference>("mount", _root);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // A circuit that has already gone away throws here rather than returning; there is
+        // nothing left to clean up in that case, so it is the one exception worth swallowing.
+        try
+        {
+            if (_viewer is not null)
+            {
+                await _viewer.InvokeVoidAsync("dispose");
+                await _viewer.DisposeAsync();
+            }
+
+            if (_module is not null)
+            {
+                await _module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+}

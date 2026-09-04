@@ -29,11 +29,11 @@ namespace Formicarium.Core.Actuation
     /// Everything the controller can switch. Kept as an interface with no hardware types in
     /// its signature so the whole control loop can be exercised against a fake on a desktop.
     ///
-    /// There is deliberately no gate here. A powered gate between the nest and its food was
-    /// the largest single point of failure in the original design: a servo that jams closed
-    /// starves the colony, unattended, for as long as it takes someone to notice. Three
-    /// always-open risers replaced it, and service closure is a manual plug cap that cannot
-    /// fail closed while nobody is watching.
+    /// There is deliberately no gate here. A powered gate between the nest and its food would
+    /// be the largest single point of failure in the system: a servo that jams closed starves
+    /// the colony, unattended, for as long as it takes someone to notice. The three risers are
+    /// always open and redundant against one fouling, and service closure is a manual plug cap
+    /// that cannot fail closed while nobody is watching.
     /// </summary>
     public interface IActuatorSet
     {

@@ -14,13 +14,13 @@
     </p>
 
     <div class="chart">
-        <h2 style="margin-top:0">Why an IP camera and not an ESP32-CAM</h2>
+        <h2 style="margin-top:0">Why an off-the-shelf IP camera</h2>
         <p class="lede" style="margin-bottom:0">
-            The original plan used an ESP32-CAM with a separate 850&nbsp;nm illuminator. .NET nanoFramework
-            has no OV2640 driver — it is an open feature request with no library — so that board would
-            have meant writing an Arduino C++ component in an otherwise all-C# project. An off-the-shelf
-            ONVIF or RTSP camera with built-in IR needs no firmware at all, and 850&nbsp;nm is invisible
-            to the ants and to us, so the column can be watched through the night without lighting it.
+            .NET nanoFramework has no OV2640 driver — it is an open feature request with no library — so
+            a camera board on the ESP32 would mean an Arduino C++ component in an otherwise all-C#
+            project. An ONVIF or RTSP camera with built-in IR needs no firmware at all, and 850&nbsp;nm
+            is invisible to the ants and to us, so the column can be watched through the night without
+            lighting it.
         </p>
     </div>
 }

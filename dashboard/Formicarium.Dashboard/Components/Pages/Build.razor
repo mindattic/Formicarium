@@ -1,0 +1,658 @@
+@page "/build"
+
+@*
+    Static server rendering. The manual is a long read that must paint immediately and work on a
+    phone at the bench with a bad connection, so only the two things that genuinely need a circuit
+    — the blueprint and the checklist — declare an interactive render mode of their own.
+*@
+
+<PageTitle>Formicarium — Build</PageTitle>
+
+<h1>Build</h1>
+<p class="lede">
+    One rigid square acrylic column: a heated Ytong nest core hydrated passively from a wicking
+    reservoir, three load-bearing risers carrying the outworld above it, and a colour experiment at
+    the mouth of each riser. The electronics come out of the fourth face on a drawer without any of
+    that being disturbed.
+</p>
+
+<div class="build-stamps">
+    <span>Species <strong><em>Tetramorium immigrans</em></strong></span>
+    <span>Nest target <strong>79–83 °F</strong></span>
+    <span>Overall height <strong>26 in / 660 mm</strong></span>
+    <span>Status <strong>pre-build, nothing ordered</strong></span>
+</div>
+
+<nav class="build-jump" aria-label="Sections">
+    <a href="build#figures">Key figures</a>
+    <a href="build#load">Load path</a>
+    <a href="build#parts">Parts</a>
+    <a href="build#pins">Pins</a>
+    <a href="build#drawings">Drawings</a>
+    <a href="build#sequence">Build sequence</a>
+    <a href="build#bringup">Bring-up</a>
+    <a href="build#experiment">Experiment</a>
+</nav>
+
+<h2>Blueprint</h2>
+<Blueprint />
+<p class="hint">
+    Drag to orbit, scroll to zoom. Click an assembly to isolate it. <strong>Drawer</strong> runs the
+    electronics tray out of the fourth face; <strong>Explode</strong> separates the stack along the
+    service axis. The three risers and both bay plates move together, because they are one welded
+    assembly.
+</p>
+
+<h2 id="figures">Key figures</h2>
+<div class="build-specs">
+    <div><dt>Section</dt><dd>8 × 8 <small>in internal</small></dd></div>
+    <div><dt>Wall</dt><dd>¼ <small>in cast acrylic</small></dd></div>
+    <div><dt>Nest</dt><dd>12 <small>in tall</small></dd></div>
+    <div><dt>Bay</dt><dd>4½ <small>in tall</small></dd></div>
+    <div><dt>Outworld</dt><dd>8 <small>in tall</small></dd></div>
+    <div><dt>Overall</dt><dd>26 <small>in / 660 mm</small></dd></div>
+    <div><dt>Base</dt><dd>16 × 16 <small>in, ballasted</small></dd></div>
+    <div><dt>Tip angle</dt><dd>≈45 <small>deg</small></dd></div>
+    <div><dt>Risers</dt><dd>3 × ¾ <small>in OD, ½ in bore</small></dd></div>
+    <div><dt>Bay plates</dt><dd>10 × 10 <small>in, ¾ in flange</small></dd></div>
+    <div><dt>Drawer</dt><dd>4 × 2¾ <small>in opening</small></dd></div>
+    <div><dt>Supported load</dt><dd>≈5 <small>lb, designed to 25</small></dd></div>
+    <div><dt>Reservoir</dt><dd>131 <small>mL</small></dd></div>
+    <div><dt>Heater</dt><dd>20 <small>W at 12 V DC</small></dd></div>
+    <div><dt>Vent mesh</dt><dd>&lt;0.5 <small>mm aperture</small></dd></div>
+    <div><dt>Refill interval</dt><dd>3–4 <small>weeks</small></dd></div>
+</div>
+<p class="hint">
+    Tip angle is <code>atan(half-base / centre-of-mass height)</code>, and it is dominated by where
+    the ballast sits rather than by how tall the column is — which is why the base is both wider
+    than it looks like it needs to be and heavy at the very bottom.
+</p>
+
+<h2 id="load">How the load comes down</h2>
+<p class="lede">
+    The outworld, its substrate and the lid — about five pounds — sit above a bay that has to be
+    open on one side. Everything about the middle of this column follows from resolving those two
+    facts.
+</p>
+
+<div class="build-note">
+    <div class="build-eyebrow">The path, top to bottom</div>
+    <p>
+        Lid and outworld walls clamp onto the <strong>outworld floor plate</strong>. That plate is
+        a 10 in square that overhangs the column by ¾ in on every side. The overhang is the
+        landing for the riser collars. Load leaves the plate through <strong>three ¾ in OD acrylic
+        risers</strong>, on the midlines of three faces, and through a <strong>portal frame</strong>
+        of two stiles and a header on the fourth. It arrives at the <strong>nest ceiling plate</strong>,
+        an identical 10 in square, and from there into the nest walls and the base.
+    </p>
+</div>
+
+<p>
+    Each riser passes through both plates and is solvent-welded with a collar against all four
+    faces. That is a bearing joint, not a seal that happens to hold: about 3 in² of welded annulus
+    per plate per riser, against a service load under two pounds each. The tubes are not sized by
+    strength — they are sized by the ½ in bore an ant needs and by the collar land the weld wants.
+    What matters is that the load has one declared path and it is a short, straight, welded one.
+</p>
+
+<p>
+    <strong>The bay enclosure carries nothing.</strong> It is a 5¼ in box standing in the middle of
+    the plates, a waist inside the column line, and its only jobs are to keep light and dust off the
+    electronics. That is precisely why one of its four faces can be a hole. Three faces are closed
+    panels with a riser standing outside each; the fourth is the drawer.
+</p>
+
+<p>
+    Three supports on a four-sided plate put the load resultant off-axis, which is what the portal
+    frame is for. Its two stiles are welded between the plates at the edges of the drawer opening
+    and take the fourth quarter of the load, so the plate is supported at four points and the drawer
+    slides through a frame that is already carrying its share. The drawer itself is a tray on rails
+    behind a gasketed face plate on two captive thumbscrews. Pull it and nothing structural moves,
+    nothing in the ant path is touched, and no weld is disturbed.
+</p>
+
+<div class="build-note">
+    <div class="build-eyebrow">What rides the drawer, and what does not</div>
+    <p>
+        <strong>On the drawer:</strong> the ESP32 and the perfboard carrying all five MOSFET stages,
+        terminal blocks and passives — everything with firmware or a failure mode worth swapping.
+    </p>
+    <p>
+        <strong>Bonded in the bay:</strong> the three LED rings in their recesses, the nest exhaust
+        fan over its port, and the bulkhead connector strip. These are dumb and they are aligned to
+        holes in the plates; re-aligning them is a worse job than replacing one in place.
+    </p>
+    <p>
+        <strong>On the base, outside the column:</strong> both peristaltic pumps and the supply jar.
+        Plumbing does not belong in a four-inch bay, and on the base it is reachable without opening
+        anything.
+    </p>
+</div>
+
+<p>
+    The outworld is the mirror image of the same rule. Its floor is welded to the risers and cannot
+    move, so the four walls and the lid lift off that floor as one unit, seating on a continuous
+    gasket in the plate's rebate under toggle clamps. Cleaning is: plug the three risers with their
+    manual caps, unclamp, lift, wash, reseat. The nest below is never opened at all once the colony
+    is in — it is ventilated through a mesh-screened port in its ceiling and a passive mesh intake
+    low on its wall, giving bottom-to-top cross-flow along the thermal gradient with nothing
+    mechanical inside it.
+</p>
+
+<h2 id="parts">Parts</h2>
+<p class="lede">
+    Full sourcing in <code>docs/bom.md</code>. Everything here is a commodity purchase except the
+    ¾ in acrylic tube for the risers, which comes from a plastics supplier rather than a general
+    retailer — and that is the entire specialty list, for a two-foot offcut.
+</p>
+
+<h3>Structure and nest</h3>
+<div class="scroll">
+    <table>
+        <thead><tr><th>Item</th><th class="num">Qty</th><th>Notes</th></tr></thead>
+        <tbody>
+            <tr>
+                <td><a href="https://www.tapplastics.com">Cast acrylic sheet, ¼ in clear</a></td>
+                <td class="num">~9 ft²</td>
+                <td>Column walls, base, lid, both 10 in bay plates, bay enclosure, portal frame, drawer, collars. Cast, not extruded — it solvent-welds and machines far better.</td>
+            </tr>
+            <tr>
+                <td><a href="https://www.canalplastic.com/products/clear-colorless-acrylic-tube">Clear acrylic tube, ¾ in OD × ⅛ in wall</a></td>
+                <td class="num">24 in</td>
+                <td>Three load-bearing risers, ½ in bore. Canal Plastics cuts to order same day.</td>
+            </tr>
+            <tr>
+                <td>Weld-On 4 (thin) and Weld-On 16 (thickened)</td>
+                <td class="num">1 ea</td>
+                <td>4 for panel seams, 16 for the riser collar fillets</td>
+            </tr>
+            <tr>
+                <td>Ytong / autoclaved aerated concrete, 100 mm slab</td>
+                <td class="num">2</td>
+                <td>The nest core, back to back. Carves with a spoon and wicks water, which is what makes passive hydration work.</td>
+            </tr>
+            <tr>
+                <td>Drawer rails (aluminium micro-slides or acrylic channel) + captive thumbscrews</td>
+                <td class="num">1 pair</td>
+                <td>Full travel to a detent, so every connector is reachable with the tray still supported</td>
+            </tr>
+            <tr>
+                <td>JST bulkhead connector strip</td>
+                <td class="num">1</td>
+                <td>Rear of the bay. Everything bonded in the bay lands here; the drawer harness plugs into it.</td>
+            </tr>
+            <tr>
+                <td>Closed-cell gasket sheet · toggle clamps ×4</td>
+                <td class="num">—</td>
+                <td>Drawer face plate, and the outworld shell onto its floor rebate</td>
+            </tr>
+            <tr>
+                <td><a href="https://www.amazon.com/byFormica-Insect-Escape-Prevention-Coating/dp/B0FBKSRJFG">byFormica PTFE Plus Fluon</a></td>
+                <td class="num">1</td>
+                <td>Band on the inner wall below the lid rim</td>
+            </tr>
+            <tr>
+                <td><a href="https://www.amazon.com/Aquarium-Marine-Silicone-Sealant-Adhesive/dp/B012NOVTD2">Aquarium-safe silicone</a></td>
+                <td class="num">1</td>
+                <td>Gaskets and secondary sealing</td>
+            </tr>
+            <tr>
+                <td>Stainless mesh, &lt;0.5 mm aperture</td>
+                <td class="num">small</td>
+                <td>Lid vent, nest ceiling exhaust, nest wall intake. <em>Tetramorium</em> pass anything coarser.</td>
+            </tr>
+            <tr>
+                <td>Ballast plate · opaque sleeve stock · riser plug caps ×3 · moat tray</td>
+                <td class="num">—</td>
+                <td>Base mass, nest darkness, manual service closure, last-line containment</td>
+            </tr>
+            <tr>
+                <td><a href="https://www.statesideants.com/product-page/tetramorium-immigrans">Tetramorium immigrans colony</a></td>
+                <td class="num">1</td>
+                <td>Queen + workers, $28.99. Ordered <em>last</em>, after two weeks of empty running.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h3>Electronics</h3>
+<div class="scroll">
+    <table>
+        <thead><tr><th>Item</th><th class="num">Qty</th><th>Notes</th></tr></thead>
+        <tbody>
+            <tr><td><a href="https://www.amazon.com/ESP32-DEVKIT-ESP-WROOM-32-4MB-CP2101/dp/B07F1GWJ1N">ESP32 DevKit (ESP-WROOM-32)</a></td><td class="num">1</td><td>Runs .NET nanoFramework. On the drawer.</td></tr>
+            <tr><td><a href="https://www.amazon.com/Hilitchi-DS18B20-Waterproof-Temperature-Sensors/dp/B018KFX5X0">DS18B20 waterproof probes</a></td><td class="num">5-pack</td><td>3 used, 2 spare. All share one 1-Wire bus.</td></tr>
+            <tr><td><a href="https://www.adafruit.com/product/2857">Adafruit SHT31-D breakout</a></td><td class="num">2</td><td>0x44 outworld, 0x45 nest</td></tr>
+            <tr><td><a href="https://www.amazon.com/DFROBOT-Gravity-Capacitive-Corrosion-Resistant/dp/B01GHY0N4K">DFRobot capacitive soil sensor</a></td><td class="num">1</td><td>In the Ytong core. <strong>Must be on ADC1.</strong></td></tr>
+            <tr><td><a href="https://www.adafruit.com/product/2167">Adafruit IR break beam, 3 mm</a></td><td class="num">3</td><td>One pair per riser, at the mouth</td></tr>
+            <tr><td>WS2812B / NeoPixel rings, ~12 px</td><td class="num">3</td><td>Bonded into recesses under the outworld floor, one concentric with each riser mouth. Chained on one data line over RMT.</td></tr>
+            <tr><td><a href="https://www.amazon.com/Bestol-5PCS-IRLZ44N-MOSFET-220AB/dp/B07DWYGNHC">IRLZ44N logic-level MOSFET</a></td><td class="num">5-pack</td><td>All five: heater, refill pump, feed pump, outworld fan, nest fan</td></tr>
+            <tr><td><a href="https://www.amazon.com/Kamoer-Peristaltic-Hydroponics-Nutrient-Analytical/dp/B07GWJ78FN">Kamoer NKP 12 V peristaltic pump</a></td><td class="num">2</td><td>On the base. Water and sugar water cannot share a pump or a line.</td></tr>
+            <tr><td>Vertical float switch, normally-open</td><td class="num">1</td><td>Reservoir level. Wired so a broken wire reads <em>not full</em>.</td></tr>
+            <tr><td><a href="https://www.amazon.com/Gdstime-40mm-Small-Brushless-Cooling/dp/B00MYZADCY">Gdstime 40 mm 5 V fan</a></td><td class="num">2</td><td>One in the lid, one bonded over the nest exhaust port</td></tr>
+            <tr><td>12 V DC heating cable ~20 W · 12 V 3 A PSU · buck converter</td><td class="num">1 ea</td><td>One supply for the whole column. The cable wraps the outside of the nest.</td></tr>
+            <tr><td>IR-capable ONVIF / RTSP IP camera</td><td class="num">1</td><td>Consumed directly by the dashboard</td></tr>
+            <tr><td>4.7 kΩ ×1 · 150 Ω ×5 · 10 kΩ ×5 · SS34 ×4</td><td class="num">—</td><td>1-Wire pull-up, MOSFET gate resistors and pulldowns, flyback diodes</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<h2 id="pins">Pin assignments</h2>
+<p class="lede">These must match <code>Core/Config/PinMap.cs</code> and <code>docs/gpio-map.md</code>.</p>
+
+<div class="build-note danger">
+    <div class="build-eyebrow">Three ways to lose a day</div>
+    <p>
+        <strong>ADC2 is dead while WiFi is on.</strong> The soil probe must be on ADC1 (GPIO 32–36, 39).
+        This is the most common ESP32 sensor bug and it presents as a sensor that worked on the bench.
+    </p>
+    <p>
+        <strong>nanoFramework's 1-Wire runs over a UART, not a bit-banged pin.</strong> It needs a COM
+        port's RX <em>and</em> TX tied together to the DQ line, with a 4.7 kΩ pull-up to 3V3. Without
+        the pull-up the bus reads all-ones and every probe enumerates as absent.
+    </p>
+    <p>
+        <strong>Record the DS18B20 ROM IDs explicitly.</strong> Do not rely on enumeration order.
+        Getting it wrong is silent: the controller heats to the outworld probe and cooks the nest, or
+        heats to the nest-top probe and never reaches setpoint. Neither looks like a wiring fault.
+    </p>
+</div>
+
+<div class="scroll">
+    <table>
+        <thead><tr><th>GPIO</th><th>Function</th><th>Mode</th><th>Notes</th></tr></thead>
+        <tbody>
+            <tr><td><span class="build-pin">21</span></td><td>SHT31 ×2 — SDA</td><td class="mono">I2C1</td><td>Both sensors share the bus at 0x44 / 0x45</td></tr>
+            <tr><td><span class="build-pin">22</span></td><td>SHT31 ×2 — SCL</td><td class="mono">I2C1</td><td>100 kHz</td></tr>
+            <tr><td><span class="build-pin hot">16</span></td><td>1-Wire bus — RX</td><td class="mono">COM3_RX</td><td>Tied to TX and to DQ</td></tr>
+            <tr><td><span class="build-pin hot">17</span></td><td>1-Wire bus — TX</td><td class="mono">COM3_TX</td><td>Three DS18B20 by ROM ID, 4.7 kΩ pull-up</td></tr>
+            <tr><td><span class="build-pin hot">34</span></td><td>Soil moisture</td><td class="mono">ADC1_CH6</td><td>Input-only pin, and on ADC1 — both required</td></tr>
+            <tr><td><span class="build-pin">27</span></td><td>IR beam — riser 1</td><td class="mono">in, pull-up</td><td>Interrupt on falling edge</td></tr>
+            <tr><td><span class="build-pin">14</span></td><td>IR beam — riser 2</td><td class="mono">in, pull-up</td><td></td></tr>
+            <tr><td><span class="build-pin">13</span></td><td>IR beam — riser 3</td><td class="mono">in, pull-up</td><td></td></tr>
+            <tr><td><span class="build-pin">19</span></td><td>IR emitter enable</td><td class="mono">out</td><td>All three emitters together</td></tr>
+            <tr><td><span class="build-pin">25</span></td><td>Heater</td><td class="mono">out</td><td>IRLZ44N, 150 Ω gate, 10 kΩ pulldown</td></tr>
+            <tr><td><span class="build-pin">26</span></td><td>Refill pump</td><td class="mono">out</td><td>Fills the reservoir. Never reaches the nest.</td></tr>
+            <tr><td><span class="build-pin">4</span></td><td>Feed pump</td><td class="mono">out</td><td>Sugar water to the outworld dish</td></tr>
+            <tr><td><span class="build-pin">33</span></td><td>Fan — outworld</td><td class="mono">out</td><td>Gated on outworld humidity (SHT31-A)</td></tr>
+            <tr><td><span class="build-pin">18</span></td><td>Fan — nest exhaust</td><td class="mono">out</td><td>Gated on <strong>nest</strong> humidity (SHT31-B). A mould guard, set high.</td></tr>
+            <tr><td><span class="build-pin hot">32</span></td><td>Reservoir float switch</td><td class="mono">in, pull-up</td><td><strong>LOW = full.</strong> See below.</td></tr>
+            <tr><td><span class="build-pin">23</span></td><td>WS2812B ring data</td><td class="mono">RMT</td><td>All three rings chained on one line</td></tr>
+            <tr><td><span class="build-pin">2</span></td><td>Status LED</td><td class="mono">out</td><td>Heartbeat, so a locked-up controller is visible</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<h3>Why the float switch reads LOW for full</h3>
+<p>
+    The switch is wired to ground and read against the internal pull-up, so a risen float reads LOW.
+    That direction is chosen, not convenient. A broken wire floats HIGH, which reads <em>not full</em>,
+    which asks for a refill — and that refill is bounded twice over, by the runtime limiter and by the
+    fact that the reservoir cannot physically hold a harmful dose. The opposite polarity would read
+    <em>full</em> forever on a broken wire, silently stop hydrating the colony, and look perfectly
+    healthy on this dashboard. Fail-safe here means failing toward a bounded action, because doing
+    nothing is what kills a colony slowly.
+</p>
+
+<h2 id="drawings">Drawings</h2>
+
+<figure class="build-figure">
+    <svg viewBox="0 0 840 470" role="img" aria-label="Side elevation of the column with dimensions, the bay waist and the load-bearing risers">
+        <defs>
+            <pattern id="ytonghatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+                <line x1="0" y1="0" x2="0" y2="6" stroke="#6b6558" stroke-width="3" />
+            </pattern>
+            <marker id="arrowdown" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0 0 L10 0 L5 10 z" fill="#d99a3a" />
+            </marker>
+        </defs>
+
+        <!-- base -->
+        <rect x="310" y="415" width="240" height="16" fill="#3a352f" stroke="#9a9089" stroke-width="1" />
+        <text x="430" y="427" fill="#e8e2d9" font-size="10.5" text-anchor="middle">BALLASTED BASE — 16 in sq · moat tray</text>
+
+        <!-- nest -->
+        <rect x="366" y="235" width="128" height="180" fill="#2e4a63" fill-opacity=".3" stroke="#9a9089" stroke-width="1.5" />
+        <rect x="374" y="250" width="112" height="160" fill="url(#ytonghatch)" stroke="#6b625a" stroke-width="1" />
+        <line x1="430" y1="250" x2="430" y2="410" stroke="#14110f" stroke-width="1.5" />
+        <rect x="374" y="288" width="112" height="46" fill="#14110f" fill-opacity=".82" />
+        <text x="430" y="303" fill="#e8e2d9" font-size="11" font-weight="600" text-anchor="middle">YTONG CORE</text>
+        <text x="430" y="317" fill="#9a9089" font-size="9.5" text-anchor="middle">two slabs, back to back</text>
+        <text x="430" y="329" fill="#9a9089" font-size="9.5" text-anchor="middle">galleries face both walls</text>
+        <rect x="378" y="388" width="30" height="22" fill="#5b8dd9" fill-opacity=".5" stroke="#5b8dd9" stroke-width="1" />
+        <text x="393" y="402" fill="#e8e2d9" font-size="8" text-anchor="middle">131 mL</text>
+
+        <!-- opaque sleeve -->
+        <rect x="358" y="235" width="8" height="180" fill="#0a0908" fill-opacity=".8" />
+        <rect x="494" y="235" width="8" height="180" fill="#0a0908" fill-opacity=".8" />
+
+        <!-- nest ceiling plate, overhanging -->
+        <rect x="355" y="230" width="150" height="6" fill="#7c8fa0" stroke="#e8e2d9" stroke-width="1.2" />
+
+        <!-- bay: a waist, with the drawer on the face toward the viewer -->
+        <rect x="390" y="171" width="80" height="59" fill="#1c1815" stroke="#7a6a55" stroke-width="1.5" />
+        <rect x="398" y="196" width="64" height="26" fill="#c9a227" fill-opacity=".25" stroke="#c9a227" stroke-width="1.2" />
+
+        <!-- outworld floor plate, overhanging -->
+        <rect x="355" y="165" width="150" height="6" fill="#7c8fa0" stroke="#e8e2d9" stroke-width="1.2" />
+
+        <!-- risers: load-bearing, standing in the step outside the bay waist -->
+        <rect x="376" y="163" width="11" height="74" fill="#d98324" fill-opacity=".75" stroke="#d98324" stroke-width="1" />
+        <rect x="473" y="163" width="11" height="74" fill="#d98324" fill-opacity=".75" stroke="#d98324" stroke-width="1" />
+        <rect x="425" y="163" width="11" height="74" fill="#d98324" fill-opacity=".2" stroke="#d98324" stroke-width="1" stroke-dasharray="4 3" />
+        <rect x="368" y="160" width="27" height="4" fill="#d98324" /><rect x="368" y="171" width="27" height="4" fill="#d98324" />
+        <rect x="368" y="226" width="27" height="4" fill="#d98324" /><rect x="368" y="236" width="27" height="4" fill="#d98324" />
+        <rect x="465" y="160" width="27" height="4" fill="#d98324" /><rect x="465" y="171" width="27" height="4" fill="#d98324" />
+        <rect x="465" y="226" width="27" height="4" fill="#d98324" /><rect x="465" y="236" width="27" height="4" fill="#d98324" />
+
+        <!-- load arrows into the riser heads -->
+        <line x1="381" y1="138" x2="381" y2="157" stroke="#d99a3a" stroke-width="2" marker-end="url(#arrowdown)" />
+        <line x1="479" y1="138" x2="479" y2="157" stroke="#d99a3a" stroke-width="2" marker-end="url(#arrowdown)" />
+
+        <!-- outworld -->
+        <rect x="366" y="47" width="128" height="118" fill="#2e4a63" fill-opacity=".18" stroke="#9a9089" stroke-width="1.5" />
+        <text x="430" y="80" fill="#e8e2d9" font-size="11" font-weight="600" text-anchor="middle">OUTWORLD</text>
+        <text x="430" y="94" fill="#9a9089" font-size="9.5" text-anchor="middle">shell lifts off a fixed floor</text>
+        <circle cx="381" cy="160" r="5.5" fill="#d4614a" fill-opacity=".9" />
+        <circle cx="479" cy="160" r="5.5" fill="#5b8dd9" fill-opacity=".9" />
+        <circle cx="430" cy="160" r="5.5" fill="#7fb069" fill-opacity=".5" />
+
+        <!-- lid -->
+        <rect x="360" y="39" width="140" height="9" fill="#3a352f" stroke="#e8e2d9" stroke-width="1.2" />
+        <text x="430" y="46" fill="#e8e2d9" font-size="8" text-anchor="middle">VENTED LID · FLUON RIM</text>
+
+        <!-- left-hand callouts -->
+        <text x="100" y="108" fill="#d98324" font-size="11" font-weight="600">LOAD-BEARING RISERS</text>
+        <text x="100" y="121" fill="#9a9089" font-size="9.5">3 × ¾ in OD, ½ in bore</text>
+        <text x="100" y="133" fill="#9a9089" font-size="9.5">collared both faces of both plates</text>
+        <line x1="278" y1="127" x2="372" y2="168" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <text x="100" y="176" fill="#a08a6a" font-size="11" font-weight="600">BAY ENCLOSURE</text>
+        <text x="100" y="189" fill="#9a9089" font-size="9.5">5¼ in sq · carries no load</text>
+        <line x1="243" y1="184" x2="388" y2="192" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <text x="100" y="302" fill="#d99a3a" font-size="10.5" font-weight="600">HEAT CABLE</text>
+        <text x="100" y="315" fill="#9a9089" font-size="9.5">wrapped OUTSIDE the nest —</text>
+        <text x="100" y="327" fill="#9a9089" font-size="9.5">no seal, no ant contact</text>
+        <line x1="243" y1="311" x2="356" y2="311" stroke="#d99a3a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <text x="100" y="398" fill="#9a9089" font-size="9.5">both pumps + supply jar</text>
+        <text x="100" y="410" fill="#9a9089" font-size="9.5">live out here, on the base</text>
+        <line x1="243" y1="404" x2="312" y2="418" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <!-- right-hand callouts -->
+        <circle cx="490" cy="110" r="4" fill="#7fb069" />
+        <text x="560" y="113" fill="#9a9089" font-size="9.5">SHT31-A 0x44 · DS18B20 · lid fan</text>
+        <line x1="496" y1="110" x2="554" y2="110" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <text x="560" y="205" fill="#c9a227" font-size="10.5" font-weight="600">ELECTRONICS DRAWER</text>
+        <text x="560" y="218" fill="#9a9089" font-size="9.5">fourth face · pulls toward you</text>
+        <line x1="464" y1="209" x2="554" y2="209" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <circle cx="490" cy="252" r="4" fill="#d4614a" />
+        <text x="560" y="255" fill="#9a9089" font-size="9.5">DS18B20 — nest top</text>
+        <line x1="496" y1="252" x2="554" y2="252" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <circle cx="490" cy="320" r="4" fill="#7fb069" />
+        <text x="560" y="323" fill="#9a9089" font-size="9.5">SHT31-B 0x45 · soil probe</text>
+        <line x1="496" y1="320" x2="554" y2="320" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <circle cx="490" cy="396" r="4" fill="#d4614a" />
+        <text x="560" y="399" fill="#9a9089" font-size="9.5">DS18B20 — nest bottom (heater control)</text>
+        <line x1="496" y1="396" x2="554" y2="396" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <!-- overall dimension -->
+        <line x1="330" y1="39" x2="330" y2="431" stroke="#6b625a" stroke-width="1" />
+        <line x1="325" y1="39" x2="335" y2="39" stroke="#6b625a" stroke-width="1" />
+        <line x1="325" y1="431" x2="335" y2="431" stroke="#6b625a" stroke-width="1" />
+        <text x="323" y="232" fill="#e8e2d9" font-size="10.5" text-anchor="end">26 in</text>
+        <text x="323" y="245" fill="#6b625a" font-size="9" text-anchor="end">660 mm</text>
+    </svg>
+    <figcaption>
+        <strong>Side elevation.</strong> The bay is a waist: its enclosure is narrower than the
+        column, and the three risers stand in the step around it, welded through the two overhanging
+        plates. The third riser is on the far face, shown dashed. Load runs from the outworld floor
+        down the risers to the nest ceiling — never through the bay walls, which is what allows one
+        of them to be a drawer opening.
+    </figcaption>
+</figure>
+
+<figure class="build-figure">
+    <svg viewBox="0 0 660 580" role="img" aria-label="Plan section through the electronics bay showing three risers on three faces and the drawer on the fourth">
+        <!-- centre-to-centre dimension, kept clear of everything below it -->
+        <line x1="200" y1="36" x2="460" y2="36" stroke="#6b625a" stroke-width="1" />
+        <line x1="200" y1="31" x2="200" y2="41" stroke="#6b625a" stroke-width="1" />
+        <line x1="460" y1="31" x2="460" y2="41" stroke="#6b625a" stroke-width="1" />
+        <text x="330" y="26" fill="#9a9089" font-size="9.5" text-anchor="middle">6½ in centre to centre — 3¼ in from the axis</text>
+
+        <!-- plate outline -->
+        <rect x="130" y="60" width="400" height="400" fill="none" stroke="#6b625a" stroke-width="1" stroke-dasharray="6 4" />
+
+        <!-- column line -->
+        <rect x="160" y="90" width="340" height="340" fill="#2e4a63" fill-opacity=".12" stroke="#9a9089" stroke-width="1.5" />
+
+        <!-- bay enclosure -->
+        <rect x="225" y="155" width="210" height="210" fill="#1c1815" stroke="#7a6a55" stroke-width="1.5" />
+        <text x="330" y="252" fill="#e8e2d9" font-size="12" font-weight="600" text-anchor="middle">BAY ENCLOSURE</text>
+        <text x="330" y="269" fill="#9a9089" font-size="10" text-anchor="middle">5¼ in sq · non-structural</text>
+        <text x="330" y="283" fill="#9a9089" font-size="10" text-anchor="middle">light and dust only</text>
+
+        <!-- bulkhead strip at the rear -->
+        <rect x="245" y="160" width="170" height="10" fill="#7fb069" fill-opacity=".45" stroke="#7fb069" stroke-width="1" />
+        <text x="330" y="188" fill="#7fb069" font-size="9.5" text-anchor="middle">JST bulkhead strip — rings and nest fan land here</text>
+
+        <!-- risers on three faces -->
+        <circle cx="200" cy="260" r="40" fill="#d98324" fill-opacity=".18" stroke="#d98324" stroke-width="1" />
+        <circle cx="200" cy="260" r="15" fill="#d98324" fill-opacity=".7" stroke="#d98324" stroke-width="1.5" />
+        <circle cx="460" cy="260" r="40" fill="#d98324" fill-opacity=".18" stroke="#d98324" stroke-width="1" />
+        <circle cx="460" cy="260" r="15" fill="#d98324" fill-opacity=".7" stroke="#d98324" stroke-width="1.5" />
+        <circle cx="330" cy="130" r="40" fill="#d98324" fill-opacity=".18" stroke="#d98324" stroke-width="1" />
+        <circle cx="330" cy="130" r="15" fill="#d98324" fill-opacity=".7" stroke="#d98324" stroke-width="1.5" />
+
+        <text x="330" y="80" fill="#d98324" font-size="10.5" font-weight="600" text-anchor="middle">RISER 3</text>
+        <text x="118" y="258" fill="#d98324" font-size="10.5" font-weight="600" text-anchor="end">RISER 1</text>
+        <text x="118" y="272" fill="#9a9089" font-size="9.5" text-anchor="end">tube ¾ in OD</text>
+        <text x="542" y="258" fill="#d98324" font-size="10.5" font-weight="600">RISER 2</text>
+        <text x="542" y="272" fill="#9a9089" font-size="9.5">collar 2 in OD</text>
+
+        <!-- outline labels, each just clear of the rule it names -->
+        <text x="130" y="54" fill="#6b625a" font-size="9.5">bay plate — 10 in sq, ¾ in overhang</text>
+        <text x="164" y="84" fill="#9a9089" font-size="9.5">column line — 8½ in sq</text>
+
+        <!-- portal frame on the fourth face -->
+        <rect x="225" y="357" width="25" height="16" fill="#b56b2a" stroke="#b56b2a" stroke-width="1" />
+        <rect x="410" y="357" width="25" height="16" fill="#b56b2a" stroke="#b56b2a" stroke-width="1" />
+        <text x="542" y="366" fill="#b56b2a" font-size="10.5" font-weight="600">PORTAL FRAME</text>
+        <text x="542" y="380" fill="#9a9089" font-size="9.5">two stiles + header</text>
+        <text x="542" y="392" fill="#9a9089" font-size="9.5">closes the load path on</text>
+        <text x="542" y="404" fill="#9a9089" font-size="9.5">the face with no riser</text>
+        <line x1="437" y1="365" x2="536" y2="365" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+        <!-- drawer, pulled out -->
+        <rect x="255" y="365" width="150" height="157" fill="#c9a227" fill-opacity=".14" stroke="#c9a227" stroke-width="1.5" stroke-dasharray="6 4" />
+        <rect x="248" y="522" width="164" height="14" fill="#c9a227" fill-opacity=".5" stroke="#c9a227" stroke-width="1.5" />
+        <text x="330" y="480" fill="#c9a227" font-size="11" font-weight="600" text-anchor="middle">ELECTRONICS DRAWER</text>
+        <text x="330" y="496" fill="#9a9089" font-size="9.5" text-anchor="middle">tray 3¾ × 4½ in on rails</text>
+        <text x="330" y="510" fill="#9a9089" font-size="9.5" text-anchor="middle">opening 4 × 2¾ in</text>
+        <text x="330" y="558" fill="#9a9089" font-size="9.5" text-anchor="middle">gasketed face plate · two captive thumbscrews</text>
+    </svg>
+    <figcaption>
+        <strong>Bay plan section.</strong> Three faces carry a riser; the fourth carries the drawer.
+        The enclosure sits inside the column line, so each riser runs in the step between the two —
+        which is why the column has a visible waist at the bay and why the drawer's face plate is
+        flush with the column's outer line.
+    </figcaption>
+</figure>
+
+<div class="build-grid2">
+    <figure class="build-figure">
+        <svg viewBox="0 0 400 300" role="img" aria-label="Detail of a load-bearing riser welded through a bay plate with collars on both faces">
+            <line x1="200" y1="14" x2="200" y2="42" stroke="#d99a3a" stroke-width="2.5" />
+            <path d="M193 38 L207 38 L200 50 z" fill="#d99a3a" />
+            <text x="216" y="34" fill="#d99a3a" font-size="10.5">load</text>
+
+            <rect x="30" y="130" width="340" height="18" fill="#2e4a63" fill-opacity=".45" stroke="#9a9089" stroke-width="1.5" />
+            <text x="44" y="124" fill="#9a9089" font-size="10">bay plate, ¼ in</text>
+
+            <rect x="185" y="56" width="30" height="200" fill="#2e4a63" fill-opacity=".3" stroke="#d98324" stroke-width="1.5" />
+            <text x="200" y="78" fill="#d98324" font-size="10.5" font-weight="600" text-anchor="middle">RISER</text>
+            <text x="200" y="92" fill="#9a9089" font-size="9" text-anchor="middle">½ in bore</text>
+
+            <rect x="145" y="112" width="110" height="18" fill="#d98324" fill-opacity=".6" stroke="#d98324" stroke-width="1" />
+            <rect x="145" y="148" width="110" height="18" fill="#d98324" fill-opacity=".6" stroke="#d98324" stroke-width="1" />
+
+            <text x="288" y="112" fill="#e8e2d9" font-size="10.5">collar, 2 in OD</text>
+            <text x="288" y="125" fill="#9a9089" font-size="9.5">bears on the plate</text>
+            <line x1="258" y1="119" x2="282" y2="117" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+            <text x="288" y="168" fill="#e8e2d9" font-size="10.5">collar</text>
+            <text x="288" y="181" fill="#9a9089" font-size="9.5">≈3 in² welded</text>
+            <line x1="258" y1="158" x2="282" y2="166" stroke="#6b625a" stroke-width="1" stroke-dasharray="3 3" />
+
+            <text x="200" y="236" fill="#9a9089" font-size="10.5" text-anchor="middle">Weld-On 16 fillet, clamped while curing</text>
+            <text x="200" y="262" fill="#7fb069" font-size="11" font-weight="600" text-anchor="middle">= ONE PIECE OF ACRYLIC</text>
+        </svg>
+        <figcaption>
+            <strong>Riser joint.</strong> Drill to the tube OD, slide through, weld a collar against
+            each face. Solvent welding fuses the parts chemically — there is no gasket to compress
+            and no friction fit to work loose, and the collars turn the joint into a bearing surface
+            rather than a hole the tube happens to sit in.
+        </figcaption>
+    </figure>
+
+    <figure class="build-figure">
+        <svg viewBox="0 0 400 300" role="img" aria-label="Two-speed hydration path from pump to reservoir to nest core">
+            <defs>
+                <marker id="h1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#9a9089" /></marker>
+                <marker id="h2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#7fb069" /></marker>
+            </defs>
+
+            <rect x="16" y="24" width="94" height="46" fill="#1c1815" stroke="#9a9089" stroke-width="1.5" />
+            <text x="63" y="44" fill="#e8e2d9" font-size="11" text-anchor="middle">supply jar</text>
+            <text x="63" y="59" fill="#9a9089" font-size="9.5" text-anchor="middle">on the base</text>
+
+            <path d="M110 47 L170 47" stroke="#9a9089" stroke-width="2" fill="none" marker-end="url(#h1)" />
+
+            <rect x="170" y="24" width="80" height="46" fill="#d99a3a" fill-opacity=".2" stroke="#d99a3a" stroke-width="1.5" />
+            <text x="210" y="44" fill="#e8e2d9" font-size="11" text-anchor="middle">pump</text>
+            <text x="210" y="59" fill="#d99a3a" font-size="9" text-anchor="middle">seconds</text>
+
+            <path d="M210 70 L210 118" stroke="#9a9089" stroke-width="2" fill="none" marker-end="url(#h1)" />
+
+            <rect x="150" y="118" width="120" height="50" fill="#5b8dd9" fill-opacity=".3" stroke="#5b8dd9" stroke-width="1.5" />
+            <text x="210" y="138" fill="#e8e2d9" font-size="11" text-anchor="middle">reservoir 131 mL</text>
+            <text x="210" y="154" fill="#9a9089" font-size="9.5" text-anchor="middle">float switch reads full</text>
+
+            <path d="M210 168 L210 212" stroke="#7fb069" stroke-width="2" stroke-dasharray="5 4" fill="none" marker-end="url(#h2)" />
+            <text x="222" y="194" fill="#7fb069" font-size="9">wicks · hours</text>
+
+            <rect x="120" y="212" width="180" height="58" fill="#6b6558" fill-opacity=".55" stroke="#9a9089" stroke-width="1.5" />
+            <text x="210" y="234" fill="#e8e2d9" font-size="11" text-anchor="middle">Ytong nest core</text>
+            <text x="210" y="252" fill="#9a9089" font-size="9.5" text-anchor="middle">no actuator on this leg</text>
+
+            <text x="20" y="212" fill="#6b625a" font-size="9.5">the fast,</text>
+            <text x="20" y="225" fill="#6b625a" font-size="9.5">electrical leg</text>
+            <text x="20" y="238" fill="#6b625a" font-size="9.5">cannot reach</text>
+            <text x="20" y="251" fill="#6b625a" font-size="9.5">the nest</text>
+        </svg>
+        <figcaption>
+            <strong>Two-speed hydration.</strong> The pump fills the reservoir in seconds; the
+            reservoir wicks into the core over hours. Nothing on the slow leg can be commanded, and
+            the fast leg cannot reach the colony — so a stuck pump overfills a harmless vessel
+            instead of flooding a sealed nest with no drain.
+        </figcaption>
+    </figure>
+</div>
+
+<h2 id="sequence">Build sequence</h2>
+<p class="lede">
+    @BuildSequence.StepCount steps, ordered so that nothing has to be undone. Progress is stored on
+    the server, not in this browser, so a step ticked on a phone at the bench is ticked everywhere.
+</p>
+
+<BuildChecklist />
+
+<h2 id="bringup">Bring-up order</h2>
+<p class="lede">
+    One subsystem at a time on the breadboard, each proved before the next is added. Every one of
+    these has a failure mode that looks like a different subsystem's fault if you wire it all at once.
+</p>
+
+<div class="scroll">
+    <table>
+        <thead><tr><th>Subsystem</th><th>Prove it by</th><th>If it fails</th></tr></thead>
+        <tbody>
+            <tr><td>Power</td><td>12 V at the rail, 5 V out of the buck, 3V3 on the ESP32</td><td>Check the buck's output before anything else is connected to it</td></tr>
+            <tr><td>1-Wire</td><td>Boot log prints three ROM IDs</td><td>Confirm the 4.7 kΩ pull-up and that RX <em>and</em> TX both reach DQ</td></tr>
+            <tr><td>Probe identity</td><td>Warm one probe in a closed hand; watch which ID moves</td><td>Record each ID in <code>DeviceConfig</code>. Never trust bus order.</td></tr>
+            <tr><td>I2C</td><td>Both SHT31s respond, at 0x44 and 0x45</td><td>Only one answering means the ADDR pin is unset on one board</td></tr>
+            <tr><td>Soil probe</td><td>Note raw counts in air, then in saturated Ytong</td><td>Those two numbers are the calibration. Higher counts mean <em>drier</em>.</td></tr>
+            <tr><td>Float switch</td><td>Continuity closes as the float rises</td><td>Verify LOW means full before the pump is ever enabled</td></tr>
+            <tr><td>MOSFETs</td><td>Each output switches a dummy load; all off at boot</td><td>A missing 10 kΩ pulldown shows up as an output on during reset</td></tr>
+            <tr><td>Beams</td><td>Wave a card through each; counts increment independently</td><td>A high debounced-count ratio means dirty or misaligned optics</td></tr>
+            <tr><td>Rings</td><td>Each ring lights its own channel colour</td><td>All three lit the same means the chain order does not match riser order</td></tr>
+            <tr><td>Nest exhaust</td><td>Airflow at the ceiling port with the intake unblocked</td><td>No flow usually means the intake mesh is sealed against the sleeve</td></tr>
+            <tr><td>Drawer</td><td>Pull to the detent and push home with the column powered</td><td>Anything that tugs is a service loop cut too short — fix it before the colony arrives</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="build-note danger">
+    <div class="build-eyebrow">Before the colony arrives</div>
+    <p>
+        Run the whole column empty for <strong>two weeks</strong>. Confirm the nest holds 79–83 °F
+        overnight, that a refill cycle completes and the reservoir reads full, that the substrate
+        stabilises rather than trending, and that no fault has latched. Order the colony only after
+        that. The failures that matter in this system are slow ones, and two weeks is the shortest
+        window in which a slow failure becomes visible.
+    </p>
+</div>
+
+<h2 id="experiment">The experiment</h2>
+<p>
+    Each riser mouth is lit from below through a frosted ring-window in the outworld floor, in one of
+    three channels, at a brightness that tracks that riser's own traffic. Traffic changes the light at
+    the choice point; the light may change the traffic.
+</p>
+
+<div class="build-note">
+    <div class="build-eyebrow">What it actually measures</div>
+    <p>
+        Ants are most sensitive to UV and blue-green and are effectively <strong>blind to deep red</strong>.
+        So these are not three flavours of one stimulus — they are three very different ones. The
+        prediction is negative feedback on blue, weak feedback on green, and almost none on red, which
+        means <strong>traffic should drift toward whichever riser is currently showing red</strong>.
+    </p>
+</div>
+
+<p class="build-channels">
+    <span><i style="background:var(--chan-red)"></i>Red — near-invisible, so near-zero deterrence</span>
+    <span><i style="background:var(--chan-green)"></i>Green — visible, moderate deterrence</span>
+    <span><i style="background:var(--chan-blue)"></i>Blue — highly visible, strongest deterrence</span>
+</p>
+
+<h3>Three conditions, and one control that makes it mean anything</h3>
+<ul>
+    <li><strong>Off</strong> — dark. Traffic logged with no light at all: the baseline.</li>
+    <li><strong>Fixed</strong> — every ring lit equally. Colour present, carrying no information about
+        traffic. This is what separates "ants respond to colour" from "ants respond to light changing at all".</li>
+    <li><strong>Closed loop</strong> — the treatment.</li>
+</ul>
+
+<p>
+    The load-bearing control is the <strong>rotation</strong>: the riser-to-channel mapping advances at
+    local midnight on a three-day cycle, and every traffic row in the log carries the channel and
+    brightness that were in force when it was counted. Without it, "they prefer green" and "they prefer
+    the tube nearest the food dish" produce identical data and the experiment means nothing. The
+    <a href="traffic">Traffic</a> page shows both groupings side by side for exactly this reason.
+</p>
+
+<p>
+    A guaranteed dark period runs 22:00–07:00 local regardless of mode or activity, so the colony always
+    has the option of darkness.
+</p>
+
+<footer class="build-footer">
+    Firmware: <code>firmware/Formicarium.Controller</code> (.NET nanoFramework, C#) — control logic
+    unit-tested on the desktop via linked sources. Full parts list and sourcing:
+    <code>docs/bom.md</code>. Pin map: <code>docs/gpio-map.md</code>.
+</footer>

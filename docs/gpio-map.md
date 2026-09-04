@@ -2,8 +2,8 @@
 
 Canonical pin assignment for the Formicarium controller (ESP32-WROOM-32 DevKit,
 .NET nanoFramework). **This file, `firmware/Formicarium.Controller/Core/Config/PinMap.cs`,
-and the pin-out diagram in `docs/build-guide.html` must always agree.** A mismatch between
-the three is the most likely latent bug in this repo.
+and the pin table on the dashboard's Build page (`/build`) must always agree.** A mismatch
+between the three is the most likely latent bug in this repo.
 
 ## Constraints that drove these choices
 
@@ -101,12 +101,12 @@ every penetration use a proper bulkhead seat or a clamped solvent weld:
 - IR beam pairs ×3 — mounted at the riser mouths, wiring dropping back into the bay
 
 **Nest ventilation (no ant-accessible mechanism at all):**
-- A mesh-screened exhaust port through the nest ceiling into the bay, with the nest fan mounted
-  on the electronics blade above it.
+- A mesh-screened exhaust port through the nest ceiling into the bay, with the nest fan bonded
+  over it on the bay side and wired to the bulkhead strip.
 - A passive mesh-screened intake low on the nest wall, behind the opaque sleeve.
 - Cross-flow therefore runs bottom to top, along the same axis as the thermal gradient. The only
-  thing inside the nest is stainless mesh, which has nothing to fail — every moving part is on
-  the blade and reachable without opening the colony.
+  thing inside the nest is stainless mesh, which has nothing to fail — every moving part sits in
+  the bay and is reachable without opening the colony.
 
 **Not penetrating anything:**
 - The 12 V heat cable is wrapped around the **outside** of the Colony section under an
@@ -137,6 +137,6 @@ pull-up, soil probe, beam receivers, float switch) — never a motor or the heat
 
 ## Cross-checking this file
 
-`Core/Config/PinMap.cs` and the pin-out diagram in `docs/build-guide.html` must agree with the
+`Core/Config/PinMap.cs` and the pin table on the dashboard's Build page must agree with the
 table above. Before wiring anything, read all three and confirm they match: a disagreement here
 produces a system that boots, reports plausible numbers, and heats to the wrong probe.

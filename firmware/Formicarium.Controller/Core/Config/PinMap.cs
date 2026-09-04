@@ -3,14 +3,17 @@ namespace Formicarium.Core.Config
     /// <summary>
     /// Every GPIO the controller touches.
     ///
-    /// This must stay in lockstep with <c>docs/gpio-map.md</c> and the pin-out diagram in
-    /// <c>docs/build-guide.html</c>. A silent disagreement between the three is the most
+    /// This must stay in lockstep with <c>docs/gpio-map.md</c> and the pin table on the
+    /// dashboard's Build page. A silent disagreement between the three is the most
     /// likely latent bug in this repository, so the constraint comments below are duplicated
     /// deliberately rather than left in the docs alone.
     /// </summary>
     public static class PinMap
     {
-        /// <summary>Number of bypass risers connecting Colony to Outworld.</summary>
+        /// <summary>
+        /// Number of risers connecting Colony to Outworld. They also carry the outworld's load
+        /// down to the nest ceiling, which is what leaves the bay walls free to be opened.
+        /// </summary>
         public const int RiserCount = 3;
 
         // --- I2C: both SHT31 sensors share one bus ---------------------------------------
@@ -51,13 +54,14 @@ namespace Formicarium.Core.Config
         public const int Fan = 33;         // outworld circulation
 
         /// <summary>
-        /// Nest exhaust fan. Sits in the sealed electronics bay and draws nest air up through a
+        /// Nest exhaust fan. Sits in the electronics bay and draws nest air up through a
         /// mesh-screened port in the nest ceiling, with a passive mesh intake low on the nest
         /// wall giving bottom-to-top cross-flow along the thermal gradient.
         ///
         /// The nest is never opened once the colony is in, so ventilation had to be something
-        /// serviceable entirely from outside it. Everything mechanical here is on the electronics
-        /// blade; the only thing inside the nest is stainless mesh, which has nothing to fail.
+        /// serviceable entirely from outside it. The fan is bonded over its port in the bay and
+        /// wired to the bulkhead strip; the only thing inside the nest is stainless mesh, which
+        /// has nothing to fail.
         /// </summary>
         public const int NestFan = 18;
 

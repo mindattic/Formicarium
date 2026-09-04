@@ -7,6 +7,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<TelemetryStore>();
+builder.Services.AddSingleton<BuildProgressStore>();
 
 // Simulator by default, because nothing has been ordered yet and a dashboard that only works
 // once hardware exists cannot be developed against. Point Controller:BaseAddress at the ESP32

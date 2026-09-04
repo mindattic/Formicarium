@@ -206,3 +206,176 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 #blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: 1rem; top: .75rem; }
+
+/* --- build manual --------------------------------------------------------- */
+
+/*
+   These styles are global rather than scoped to Build.razor because the blueprint builds its own
+   DOM from JavaScript, and a JS-written element never carries Blazor's scope attribute. One place
+   for all of it beats half here and half in a .razor.css that silently misses the viewer.
+*/
+
+h3 { font-size: .95rem; margin: 1.75rem 0 .5rem; color: var(--ink); font-weight: 600; }
+
+.build-stamps {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.75rem;
+    font-size: .78rem; color: var(--ink-faint); margin-bottom: 1.25rem;
+}
+
+.build-stamps strong { color: var(--ink-dim); font-weight: 500; }
+
+.build-jump {
+    display: flex; flex-wrap: wrap; gap: .35rem;
+    padding-bottom: 1.25rem; border-bottom: 1px solid var(--panel-edge); margin-bottom: .5rem;
+}
+
+.build-jump a {
+    font-size: .78rem; text-decoration: none; color: var(--ink-dim);
+    border: 1px solid var(--panel-edge); border-radius: var(--radius); padding: .25rem .6rem;
+}
+
+.build-jump a:hover { color: var(--accent); border-color: var(--accent); }
+
+/* --- blueprint viewer ----------------------------------------------------- */
+
+.build-viewer {
+    display: grid; grid-template-columns: 1fr;
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: var(--radius);
+    overflow: hidden;
+}
+
+@media (min-width: 780px) { .build-viewer { grid-template-columns: 1fr 15rem; } }
+
+/* Tall enough to be the taller of the two grid children, so the canvas sets the row height and
+   no dead band opens up under it beside the assembly list. */
+.build-stage { width: 100%; height: 32rem; display: block; background: #0f0d0b; cursor: grab; touch-action: none; }
+.build-stage:active { cursor: grabbing; }
+
+.build-viewer-side { border-top: 1px solid var(--panel-edge); padding: .9rem; align-self: start; }
+@media (min-width: 780px) { .build-viewer-side { border-top: 0; border-left: 1px solid var(--panel-edge); } }
+
+.build-eyebrow {
+    font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600; margin-bottom: .5rem;
+}
+
+.build-key { list-style: none; padding: 0; margin: 0 0 .9rem; }
+.build-key li { margin: 0; }
+
+.build-key button {
+    display: flex; align-items: center; gap: .55rem; width: 100%; text-align: left;
+    background: none; border: 0; padding: .3rem .25rem; border-radius: 2px;
+    font-size: .78rem; color: var(--ink-dim); cursor: pointer;
+}
+
+.build-key button:hover, .build-key button[aria-pressed="true"] { background: #241f1b; color: var(--ink); }
+.build-key i { width: .7rem; height: .7rem; flex: none; border-radius: 2px; }
+.build-key small { display: block; color: var(--ink-faint); font-size: .68rem; }
+
+.build-viewer-controls { display: flex; flex-wrap: wrap; gap: .35rem; }
+.build-viewer-controls button { font-size: .72rem; padding: .35rem .55rem; letter-spacing: .04em; text-transform: uppercase; }
+.build-viewer-controls button[aria-pressed="true"] { background: var(--accent); color: var(--ground); border-color: var(--accent); font-weight: 600; }
+
+.build-fallback { padding: 1.5rem; color: var(--ink-faint); font-size: .85rem; }
+
+/* --- key figures ---------------------------------------------------------- */
+
+.build-specs {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1px; background: var(--panel-edge); border: 1px solid var(--panel-edge);
+    border-radius: var(--radius); overflow: hidden;
+}
+
+.build-specs > div { background: var(--panel); padding: .7rem .85rem; }
+.build-specs dt { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+.build-specs dd { margin: .15rem 0 0; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.build-specs dd small { font-size: .72rem; color: var(--ink-faint); margin-left: .2rem; }
+
+/* --- notes ---------------------------------------------------------------- */
+
+.build-note {
+    border: 1px solid var(--panel-edge); border-left: 3px solid var(--accent);
+    background: var(--panel); border-radius: var(--radius);
+    padding: .85rem 1rem; margin: 0 0 1.25rem; max-width: 72ch;
+}
+
+.build-note p { margin: 0 0 .6rem; font-size: .9rem; color: var(--ink-dim); }
+.build-note p:last-child { margin-bottom: 0; }
+.build-note.danger { border-left-color: var(--bad); }
+.build-note.danger .build-eyebrow { color: var(--bad); }
+
+/* --- pins ----------------------------------------------------------------- */
+
+.build-pin {
+    display: inline-block; font-family: ui-monospace, monospace; font-size: .78rem; font-weight: 600;
+    background: #241f1b; border: 1px solid var(--panel-edge); border-radius: 2px; padding: .05rem .4rem;
+}
+
+.build-pin.hot { background: var(--accent); border-color: var(--accent); color: var(--ground); }
+td.mono { font-family: ui-monospace, monospace; font-size: .8rem; }
+
+/* --- drawings ------------------------------------------------------------- */
+
+.build-figure { margin: 0 0 1.75rem; }
+
+.build-figure svg {
+    display: block; width: 100%; height: auto;
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: var(--radius);
+}
+
+.build-figure figcaption { font-size: .82rem; color: var(--ink-faint); margin-top: .6rem; max-width: 72ch; }
+.build-figure figcaption strong { color: var(--ink-dim); }
+
+.build-grid2 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 780px) { .build-grid2 { grid-template-columns: 1fr 1fr; } }
+
+/* --- build sequence ------------------------------------------------------- */
+
+.build-progress {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: var(--radius);
+    padding: .7rem 1rem; margin-bottom: 1rem;
+}
+
+.build-progress-count { font-size: .9rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.build-progress-count strong { font-size: 1.3rem; color: var(--ink); font-weight: 500; }
+.build-progress-bar { flex: 1; min-width: 8rem; height: 4px; background: #241f1b; border-radius: 2px; overflow: hidden; }
+.build-progress-bar i { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
+
+.build-phase {
+    display: flex; align-items: center; gap: .75rem;
+    font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); margin: 2rem 0 .5rem;
+}
+
+.build-phase::after { content: ""; flex: 1; height: 1px; background: var(--panel-edge); }
+
+.build-steps { list-style: none; padding: 0; margin: 0; max-width: 76ch; }
+.build-steps li { margin: 0; border-bottom: 1px solid var(--panel-edge); }
+
+.build-steps label {
+    display: grid; grid-template-columns: 1.1rem 1.6rem 1fr; gap: .75rem; align-items: start;
+    padding: .7rem .25rem; cursor: pointer;
+}
+
+.build-steps input { margin: .2rem 0 0; width: .95rem; height: .95rem; accent-color: var(--accent); cursor: pointer; }
+.build-steps label:focus-within { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.build-stepnum { font-size: .78rem; font-weight: 700; color: var(--ink-faint); padding-top: .15rem; font-variant-numeric: tabular-nums; }
+.build-stepbody { font-size: .9rem; }
+.build-stepbody em { display: block; margin-top: .2rem; font-style: normal; font-size: .8rem; color: var(--ink-faint); }
+.build-stepbody.done { color: var(--ink-faint); }
+.build-stepbody.done strong { text-decoration: line-through; }
+
+/* --- experiment ----------------------------------------------------------- */
+
+.build-channels { display: grid; gap: .35rem; font-size: .88rem; color: var(--ink-dim); max-width: 62ch; }
+.build-channels span { display: inline-flex; align-items: center; gap: .5rem; }
+.build-channels i { width: .65rem; height: .65rem; border-radius: 2px; flex: none; }
+
+.build-footer {
+    border-top: 1px solid var(--panel-edge); margin-top: 2.5rem; padding-top: 1rem;
+    font-size: .8rem; color: var(--ink-faint);
+}
+
+code { font-family: ui-monospace, monospace; font-size: .88em; color: var(--ink-dim); }

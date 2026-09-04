@@ -1,8 +1,8 @@
 # Formicarium
 
 A self-regulating habitat for *Tetramorium immigrans* — one square acrylic column with a heated
-Ytong nest core, passive hydration, three always-open risers, and a closed-loop colour experiment
-at the mouth of each riser. Firmware in C# on .NET nanoFramework; dashboard in Blazor.
+Ytong nest core, passive hydration, three always-open load-bearing risers, and a closed-loop colour
+experiment at the mouth of each riser. Firmware in C# on .NET nanoFramework; dashboard in Blazor.
 
 **Nothing has been ordered yet.** The repo is complete on paper and verifiable without hardware:
 the firmware compiles to a deployable image, the control logic is unit-tested on the desktop, and
@@ -12,8 +12,7 @@ the dashboard runs the real firmware policy against a colony simulator.
 
 ```
 docs/
-  build-guide.html      single-file build manual: 3D blueprint, drawings, 36-step sequence
-  bom.md                parts, sourcing, and every part that was cut with the reason
+  bom.md                parts, sourcing, dimensions, and why each choice is what it is
   gpio-map.md           canonical pin assignment — the single source of truth
 firmware/
   Formicarium.Controller/
@@ -23,7 +22,17 @@ firmware/
   Formicarium.Controller.Tests/   58 tests, desktop, no ESP32 required
 dashboard/
   Formicarium.Dashboard/          Blazor Server + SQLite telemetry log
+    Components/Pages/Build.razor  the build manual: 3D blueprint, drawings, 44-step sequence
 ```
+
+## The column
+
+One rigid square column, 8 × 8 in internal and 26 in tall: ballasted base, nest, electronics bay,
+outworld, vented lid. **Three ¾ in acrylic risers carry the outworld's load down to the nest**,
+welded with collars through two overhanging plates, so the bay enclosure between those plates
+carries nothing at all — which is what lets one of its four faces be a drawer. Three faces have a
+riser; the fourth has the electronics, on a tray that slides out behind a gasketed face plate
+without disturbing a single weld or any part of the ant path.
 
 ## The one architectural idea
 
@@ -61,8 +70,11 @@ minutes — long enough to watch the midnight colour rotation and the diurnal tr
 `Controller:BaseAddress` at the ESP32 and set `UseSimulator: false` to switch to real hardware;
 nothing else changes.
 
-Open `docs/build-guide.html` directly in a browser, or read the
-[published version](https://claude.ai/code/artifact/0bfd0671-845a-4c76-b151-b84ba596428e).
+The build manual is a page in the dashboard itself, at `/build`: interactive 3D blueprint,
+elevation and bay-plan drawings, the parts and pin tables, and a 44-step build sequence whose
+progress is stored server-side rather than in one browser's local storage. Three.js is served from
+`wwwroot/lib` rather than a CDN, so the one page you most want open during a build works with no
+internet at all.
 
 ## Building the firmware
 
@@ -108,14 +120,14 @@ real bindings, which rules out wrong types and wrong signatures, but not wrong b
    "hasn't been on long enough to turn off" is the bug that ordering prevents.
 3. The over-temperature cutout reads **every** nest probe, not just the heater's control probe, so
    one sensor failing low cannot cook the colony while a second watches it happen.
-4. `MistMaxRunSeconds` has no equivalent any more, because **the pump no longer touches the nest**.
+4. There is no maximum-mist-runtime rule to get right, because **the pump never touches the nest**.
    It fills a 131 mL reservoir that wicks into the core, and that reservoir is smaller than a
    harmful dose. The guarantee lives in the geometry, where an electrical fault cannot reach it.
 5. Hydration keys off the reservoir float switch, not the soil probe, so a dead probe degrades the
    system to "passively hydrated, unmonitored" instead of stopping watering altogether.
 6. There is no gate. A servo that jams closed starves the colony unattended, and no firmware can
-   tell a closed gate from a stuck one. Three always-open risers replace it; service closure is a
-   manual plug cap.
+   tell a closed gate from a stuck one. The three risers are always open and redundant against one
+   fouling; service closure is a manual plug cap.
 7. Boot state is every output off, and nothing energises until some sensor has read successfully.
 8. The two fans watch different zones. The nest exhaust is gated on *nest* humidity and set high,
    because it is a mould guard, not a climate control — the colony wants a humid nest and the
@@ -136,9 +148,9 @@ are supported: **Off** (dark baseline), **Fixed** (lit, carrying no information)
 
 ## Still open
 
-- Real-hardware bring-up. `docs/build-guide.html` has the breadboard order and the per-subsystem
-  failure modes ready to work through when parts arrive.
+- Real-hardware bring-up. The Build page has the breadboard order and the per-subsystem failure
+  modes ready to work through when parts arrive.
 - Public hosting of the dashboard (auth, TLS, remote reach). Local only for now; the client
   abstraction is what keeps that a contained change.
-- Protein feeding stays manual, per the original design — fruit flies are not worth automating and
-  a jammed protein feeder would rot in the dish.
+- Protein feeding stays manual — fruit flies are not worth automating and a jammed protein feeder
+  would rot in the dish.

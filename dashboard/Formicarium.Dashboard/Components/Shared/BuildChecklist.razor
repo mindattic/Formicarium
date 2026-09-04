@@ -1,0 +1,86 @@
+@rendermode InteractiveServer
+@inject BuildProgressStore Progress
+
+@if (_completed is null)
+{
+    <div class="empty">Loading progress…</div>
+}
+else
+{
+    <div class="build-progress">
+        <div class="build-progress-count">
+            <strong>@_completed.Count</strong> / @BuildSequence.StepCount
+        </div>
+        <div class="build-progress-bar">
+            <i style="width:@(Percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%"></i>
+        </div>
+        <button type="button" class="danger" disabled="@(_completed.Count == 0)" @onclick="ClearAsync">
+            Clear all
+        </button>
+    </div>
+
+    @foreach (var phase in BuildSequence.Phases)
+    {
+        <div class="build-phase">@phase.Name</div>
+
+        <ul class="build-steps">
+            @foreach (var step in phase.Steps)
+            {
+                var done = _completed.Contains(step.Number);
+
+                <li>
+                    <label>
+                        <input type="checkbox" checked="@done"
+                               @onchange="e => ToggleAsync(step.Number, (bool?)e.Value == true)" />
+                        <span class="build-stepnum">@step.Number.ToString("00")</span>
+                        <span class="build-stepbody @(done ? "done" : "")">
+                            <strong>@step.Text</strong>
+                            <em>@step.Note</em>
+                        </span>
+                    </label>
+                </li>
+            }
+        </ul>
+    }
+}
+
+@code {
+    private HashSet<int>? _completed;
+
+    private double Percent => _completed is null || BuildSequence.StepCount == 0
+        ? 0
+        : _completed.Count * 100.0 / BuildSequence.StepCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _completed = await Progress.CompletedAsync();
+    }
+
+    private async Task ToggleAsync(int step, bool done)
+    {
+        if (_completed is null)
+        {
+            return;
+        }
+
+        // Update in memory first so the tick and the counter move with the click; the write is
+        // small and local, and if it throws the exception surfaces rather than being swallowed
+        // behind a checkbox that already looks committed.
+        if (done)
+        {
+            _completed.Add(step);
+        }
+        else
+        {
+            _completed.Remove(step);
+        }
+
+        await Progress.SetAsync(step, done);
+    }
+
+    private async Task ClearAsync()
+    {
+        await Progress.ClearAsync();
+        _completed = [];
+    }
+}
