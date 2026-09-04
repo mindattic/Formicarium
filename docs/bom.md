@@ -112,7 +112,7 @@ pounds of water. This one only has to hold ants.
 | Bay enclosure | 5¼ in square external |
 | Risers | 3 × ¾ in OD × ⅛ in wall, centres 3¼ in from the axis |
 | Riser collars | 2 in OD, four per riser |
-| Drawer opening | 4 × 2¾ in; tray 3¾ × 4½ in |
+| Drawer opening | 3¾ × 2¾ in; tray 3½ × 4½ in; portal stiles ½ in wide |
 | Base | 16 × 16 in, ballasted |
 | Reservoir | 131 mL |
 
@@ -135,7 +135,7 @@ a quote.
 | Adafruit IR break beam, 3 mm | 3 | **$2.95 ea — $8.85** | ✔ adafruit.com, in stock |
 | *Tetramorium immigrans* colony | 1 | **$28.99** | ✔ statesideants.com |
 | Acrylic tube, ¾" OD × ⅛" wall | 2 ft | **$1.10/ft — $2.20** + cutting | ✔ canalplastic.com |
-| Cast acrylic sheet, ¼", cut to size | ~9 sq ft | ~$75–110 | ~ est. $8–12/sq ft cut-to-size |
+| Cast acrylic sheet, ¼", cut to size | ~10 sq ft | ~$80–120 | ~ est. $8–12/sq ft cut-to-size |
 | AAC block, 24 × 8 × 4 in | 1 | ~$20–60 | ~ **see the sourcing note below** |
 | Kamoer NKP peristaltic pump | 2 | ~$35 ea — $70 | ~ est. |
 | IR ONVIF / RTSP IP camera | 1 | ~$35 | ~ est. |
@@ -223,11 +223,52 @@ that it would not be visible until the colony was established.
 
 ---
 
+## Cut list
+
+Every acrylic part, ¼ in cast, ready to hand to a shop for a quote. **Net area 8.1 sq ft; order
+about 10 sq ft** to cover kerf and mistakes — for example one 24 × 48 in sheet plus a 12 × 24 in
+offcut.
+
+**Joint convention:** butt joints, solvent-welded. In each four-wall box two opposite panels span
+the full external width and the other two fit between them, so the pair that fits between is
+½ in narrower. Sizes below are finished sizes.
+
+| # | Panel | Qty | Size (in) | Notes |
+|---|---|---|---|---|
+| 1 | Nest base | 1 | 8½ × 8½ | The four nest walls land on it. Containment boundary. |
+| 2 | Nest wall, wide | 2 | 8½ × 11¾ | One takes the capped expansion port, one the low intake |
+| 3 | Nest wall, narrow | 2 | 8 × 11¾ | Fits between the wide pair |
+| 4 | Nest ceiling plate | 1 | 10 × 10 | 3 riser holes at 3¼ in radius, exhaust port, cable gland |
+| 5 | Outworld floor plate | 1 | 10 × 10 | 3 riser holes, 3 ring recesses, gasket rebate, cable gland |
+| 6 | Bay enclosure wall, wide | 2 | 5¼ × 4 | Non-structural |
+| 7 | Bay enclosure wall, rear | 1 | 4¾ × 4 | Non-structural; carries the terminal strip |
+| 8 | Drawer-face panel | 1 | 4¾ × 4 | With the 3¾ × 2¾ in opening cut out |
+| 9 | Portal stile | 2 | ½ × 4 | **Structural.** Welded between the plates at the opening edges |
+| 10 | Portal header | 1 | 4¾ × ⅝ | **Structural.** Across the top of the opening |
+| 11 | Outworld wall, wide | 2 | 8½ × 8 | |
+| 12 | Outworld wall, narrow | 2 | 8 × 8 | Fits between the wide pair |
+| 13 | Lid | 1 | 9 × 9 | Mesh aperture cut out; overhangs the shell by ¼ in |
+| 14 | Drawer tray | 1 | 3½ × 4½ | Rides the rails |
+| 15 | Drawer face plate | 1 | 4⅝ × 2⅞ | Gasketed, two captive thumbscrews |
+| 16 | Riser collar | 12 | 2 in dia | Hole-sawed from offcut, bored to ¾ in |
+
+Items 4, 5, 9 and 10 are the load path and item 1 is the containment boundary; everything else is
+enclosure. Cut those five first and cut them accurately — the rest can be trimmed to fit, and these
+cannot.
+
+### The one clearance that matters
+
+The bay enclosure is 5¼ in square outside, so **4¾ in inside**. The drawer opening is 3¾ in wide,
+which leaves exactly ½ in of face either side — and that ½ in is where the two portal stiles stand.
+The tray is 3½ in wide and passes the opening with ⅛ in either side. Widen the opening and the
+stiles have nothing to stand on; widen the tray and it will not pass. Check these four numbers
+against each other before cutting anything.
+
 ## Structure
 
 | Item | Qty | Source | Notes |
 |---|---|---|---|
-| Cast acrylic sheet, ¼", clear | ~9 sq ft | Commodity — hardware store, [TAP](https://www.tapplastics.com), Amazon | Column walls, base, lid, both 10 in plates, bay enclosure, portal frame, drawer, collars. Cast, not extruded: it solvent-welds and machines far better. |
+| Cast acrylic sheet, ¼", clear | ~10 sq ft | Commodity — hardware store, [TAP](https://www.tapplastics.com), Amazon | Every panel is listed in the cut list above — 8.1 sq ft net. Cast, not extruded: it solvent-welds and machines far better. |
 | Clear acrylic tube, ¾" OD × ⅛" wall | 24" | [Canal Plastics](https://www.canalplastic.com/products/clear-colorless-acrylic-tube) — **$1.10/ft ✔**, sold in 12/24/36/72" lengths, cut to order | Three load-bearing risers. An ⅛" wall on ¾" OD gives exactly the ½" bore this design wants — confirmed on their spec table. The only specialty part in the build. |
 | Acrylic offcut for collars | scrap | from the sheet | Twelve collars, 2" OD — four per riser |
 | Weld-On 16 (thickened) + Weld-On 4 (thin) | 1 ea | Amazon / TAP | 4 for panel seams, 16 for collar fillets |

@@ -22,8 +22,8 @@ public static class BuildSequence
             ("Cut the eight column panels, both bay plates, the base, the lid and the four bay-enclosure panels from ¼ in cast acrylic.",
              "Cast, not extruded — it solvent-welds and machines far better. Keep every edge square; a weld needs mating faces, not gaps."),
 
-            ("Cut the two portal stiles and the header for the fourth bay face.",
-             "These close the load path on the side that has no riser. They are structure, not trim."),
+            ("Cut the two portal stiles (½ × 4 in) and the header for the fourth bay face.",
+             "These close the load path on the side that has no riser. They are structure, not trim, and their width is what sets the drawer opening at 3¾ in."),
 
             ("Dry-fit the whole stack with tape before any solvent touches it.",
              "Every dimension error is free to fix now and permanent afterwards."),

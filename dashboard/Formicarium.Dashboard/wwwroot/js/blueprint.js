@@ -180,8 +180,10 @@ export async function mount(root) {
 
     // --- portal frame: the fourth face ----------------------------------------
     const gPortal = group("portal", 0);
-    [-2.125 * S, 2.125 * S].forEach(x => {
-        add(gPortal, box(0.75 * S, bayClear, 0.25 * S, 0xb56b2a, 0.9), "portal", x, bayFloor + bayClear / 2, BAY / 2);
+    // ½ in stiles standing exactly at the edges of the 3¾ in opening: any wider and they eat
+    // into the gap the tray has to pass through.
+    [-2.25 * S, 2.25 * S].forEach(x => {
+        add(gPortal, box(0.5 * S, bayClear, 0.25 * S, 0xb56b2a, 0.9), "portal", x, bayFloor + bayClear / 2, BAY / 2);
     });
     add(gPortal, box(BAY, 0.6 * S, 0.25 * S, 0xb56b2a, 0.9), "portal", 0, bayCeil - 0.3 * S, BAY / 2);
 
@@ -196,7 +198,7 @@ export async function mount(root) {
     // --- the drawer ------------------------------------------------------------
     const gDrawer = group("drawer", 0);
     gDrawer.userData.baseZ = 0;
-    add(gDrawer, box(3.75 * S, 0.2 * S, 4.5 * S, 0xc9a227, 0.95), "drawer", 0, bayFloor + 0.35 * S, -0.2 * S);
+    add(gDrawer, box(3.5 * S, 0.2 * S, 4.5 * S, 0xc9a227, 0.95), "drawer", 0, bayFloor + 0.35 * S, -0.2 * S);
     add(gDrawer, box(4.6 * S, 2.9 * S, 0.25 * S, 0xc9a227, 0.9), "drawer", 0, bayFloor + 1.6 * S, BAY / 2 + 0.2 * S);
     // the controller board riding on it
     add(gDrawer, box(2.2 * S, 0.5 * S, 1.1 * S, 0x2f6f4f, 1), "drawer", -0.6 * S, bayFloor + 0.7 * S, -0.6 * S);
