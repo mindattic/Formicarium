@@ -1,6 +1,8 @@
 # Bill of Materials
 
-Everything the column is made of, with sourcing. The build order, drawings and pin table live on
+Everything the column is made of, with sourcing and a costed total. **Links last checked
+2026-09-03** — see [Cost and sourcing status](#cost-and-sourcing-status) for what is verified and
+what is still an estimate. The build order, drawings and pin table live on
 the dashboard's **Build** page (`/build`).
 
 ## What this is
@@ -74,7 +76,8 @@ Drill the plate to the tube's outside diameter, slide the tube through, then sol
 acrylic collar against each face and fillet with Weld-On 16. Solvent welding chemically fuses the
 parts into one piece of acrylic — no gasket to compress, no friction fit to work loose — and the
 collars turn the joint into a bearing surface rather than a hole the tube happens to sit in. About
-3 in² of welded annulus per plate per riser, against a service load under two pounds each.
+5.4 in² of welded annulus per plate per riser — two 2 in collars at 2.7 in² each — against a
+service load under two pounds each.
 
 Weld this assembly **flat on the bench**, both plates clamped parallel, before it is ever bonded to
 the nest. A flat face can be clamped while it cures; that is what a curved wall makes impossible,
@@ -117,18 +120,96 @@ The section is 8 in rather than 6 because the bay has to hold a drawer wide enou
 controller board *and* leave three ½ in riser bores inside the outworld floor, clear of the walls.
 Below 8 in those two demands collide.
 
+---
+
+## Cost and sourcing status
+
+**Links last checked: 2026-09-03.** A ✔ price was read off the vendor's own page on that date. A ~
+price is an estimate from typical US retail and has **not** been quoted — Amazon serves no price to
+an automated fetch, and Amazon prices move weekly anyway. Treat the total as a planning figure, not
+a quote.
+
+| Line | Qty | Price | Basis |
+|---|---|---|---|
+| Adafruit SHT31-D breakout | 2 | **$13.95 ea — $27.90** | ✔ adafruit.com, in stock |
+| Adafruit IR break beam, 3 mm | 3 | **$2.95 ea — $8.85** | ✔ adafruit.com, in stock |
+| *Tetramorium immigrans* colony | 1 | **$28.99** | ✔ statesideants.com |
+| Acrylic tube, ¾" OD × ⅛" wall | 2 ft | **$1.10/ft — $2.20** + cutting | ✔ canalplastic.com |
+| Cast acrylic sheet, ¼", cut to size | ~9 sq ft | ~$75–110 | ~ est. $8–12/sq ft cut-to-size |
+| AAC / Ytong block | 1 block | ~$20–60 | ~ **see the sourcing risk below** |
+| Kamoer NKP peristaltic pump | 2 | ~$35 ea — $70 | ~ est. |
+| IR ONVIF / RTSP IP camera | 1 | ~$35 | ~ est. |
+| Weld-On 4 + Weld-On 16 | 1 ea | ~$25 | ~ est. |
+| ESP32 DevKit | 1 | ~$12 | ~ est. |
+| DS18B20 probes, 5-pack | 1 | ~$13 | ~ est. |
+| Soil moisture sensor | 1 | ~$8 | ~ est. |
+| IRLZ44N MOSFETs, 5-pack | 1 | ~$8 | ~ est. |
+| WS2812B rings | 3 | ~$15 | ~ est. |
+| 12 V DC heating cable, ~20 W | 1 | ~$18 | ~ est. |
+| 12 V 3 A PSU + buck converter | 1 ea | ~$22 | ~ est. |
+| 40 mm 5 V fans | 2 | ~$10 | ~ est. |
+| Float switch | 1 | ~$8 | ~ est. |
+| Drawer slides, 4" travel | 1 pair | ~$12 | ~ est. |
+| Fluon PTFE Plus, 10 mL | 1 | ~$15 | ~ est. |
+| Gasket sheet, toggle clamps, thumbscrews | — | ~$30 | ~ est. |
+| Ballast, base stock, moat tray | — | ~$30 | ~ est. |
+| Silicone, mesh, tubing, riser caps | — | ~$33 | ~ est. |
+| Perfboard, JST, glands, passives, wire | — | ~$35 | ~ est. |
+
+**Planning total: roughly $560–640**, excluding tools. Two lines dominate it — the acrylic sheet and
+the pair of peristaltic pumps — and between them they are about a third of the build.
+
+### Sourcing risk: the AAC block
+
+This is the one part that could actually stop the build, and it is the nest core.
+
+Raw autoclaved aerated concrete is a commodity in Europe and **genuinely hard to buy in small
+quantities in the United States** — most US builders moved away from it, so the domestic
+manufacturers that exist ([Aercon](https://aerconaac.com/), [Litecon](https://liteconusa.com/))
+sell by the pallet, and a pallet runs into the hundreds of dollars for a part worth about $30.
+
+What the ant-keeping market sells instead is *finished* Ytong nests
+([Esthetic Ants via American Ant Supply](https://americanantsupply.com/products/copy-of-esthetic-ants-small-ytong-type-b),
+[Just Ants](https://justants.shop/products/ytong-aac-block-nest)) — but those run about
+108 × 63 × 28 mm, an order of magnitude too small for the 8 in core this column needs. They are not
+a substitute.
+
+So, in order of preference:
+
+1. **eBay, or a local masonry supplier willing to break a pallet.** A single block is all that is
+   needed and it cuts with a hand saw.
+2. **A US AAC manufacturer's sample or offcut**, asked for directly.
+3. **Fall back to a poured medium** — hydrostone, or a plaster and sand mix. It wicks, it is rigid,
+   and it pours to any dimension, which removes the sourcing problem entirely. It is heavier and
+   cannot be re-carved, and this design has not been checked against it.
+
+**Settle this before cutting any acrylic.** Every internal dimension in the build is set by the
+core, and the column is not worth building without one.
+
+### Two other gaps worth naming
+
+- **Cast acrylic sheet is priced, not quoted.** The ~9 sq ft is arithmetic off the panel schedule,
+  and cut-to-size pricing depends on how many separate cuts the shop makes. Get a real quote from
+  [TAP](https://www.tapplastics.com), [Acme](https://www.acmeplastics.com/acrylic-sheets-cut-to-size)
+  or a local shop with the panel list in hand before ordering anything else.
+- **Amazon links resolve, but ASINs rot.** Every Amazon link in this file was confirmed on
+  2026-09-03 to still point at the right product. None of them are irreplaceable — they are all
+  commodity parts, and the Notes column is the specification, not the link.
+
+---
+
 ## Structure
 
 | Item | Qty | Source | Notes |
 |---|---|---|---|
 | Cast acrylic sheet, ¼", clear | ~9 sq ft | Commodity — hardware store, [TAP](https://www.tapplastics.com), Amazon | Column walls, base, lid, both 10 in plates, bay enclosure, portal frame, drawer, collars. Cast, not extruded: it solvent-welds and machines far better. |
-| Clear acrylic tube, ¾" OD × ⅛" wall | 24" | [Canal Plastics](https://www.canalplastic.com/products/clear-colorless-acrylic-tube) (¼"–12" OD, same-day cut) | Three load-bearing risers, ½" bore. The only specialty part in the build, and it is a short offcut. |
+| Clear acrylic tube, ¾" OD × ⅛" wall | 24" | [Canal Plastics](https://www.canalplastic.com/products/clear-colorless-acrylic-tube) — **$1.10/ft ✔**, sold in 12/24/36/72" lengths, cut to order | Three load-bearing risers. An ⅛" wall on ¾" OD gives exactly the ½" bore this design wants — confirmed on their spec table. The only specialty part in the build. |
 | Acrylic offcut for collars | scrap | from the sheet | Twelve collars, 2" OD — four per riser |
 | Weld-On 16 (thickened) + Weld-On 4 (thin) | 1 ea | Amazon / TAP | 4 for panel seams, 16 for collar fillets |
-| Ytong / autoclaved aerated concrete, 100 mm slab | 2 | Masonry supply, eBay | The nest core, set back to back. Galleries carved into the outward face of each, so the nest reads from two opposite walls. |
-| Drawer rails — aluminium micro-slides or acrylic channel | 1 pair | | Full travel to a detent, so every connector is reachable with the tray still supported |
+| Ytong / autoclaved aerated concrete, 100 mm slab | 2 | eBay, or a masonry supplier willing to break a pallet — **read the sourcing risk above** | The nest core, set back to back. Galleries carved into the outward face of each, so the nest reads from two opposite walls. Hardest part in the build to buy; settle it first. |
+| Drawer rails, 4" travel ball-bearing | 1 pair | [uxcell 4" full-extension](https://www.amazon.com/uxcell-4-inch-Sections-Telescoping-Bearing/dp/B01MY4IDEK), or [Rockler mini slides](https://www.rockler.com/mini-ball-bearing-drawer-slides-select-length) | 45 mm wide, 33 lb per pair — far more than a 1 lb tray needs; chosen for the full extension, not the load. Rockler mini slides are 3/8" thick if the bay gets tight. |
 | Captive thumbscrews + threaded standoffs | 2 + 2 | | Pull the drawer face plate home against its gasket. Nothing else holds the drawer in. |
-| JST bulkhead connector strip | 1 | | Rear of the bay. The rings and the nest fan land here; the drawer harness plugs into it. |
+| Panel-mount terminal strip | 1 | [DigiKey panel-mount terminal blocks](https://www.digikey.com/products/en/connectors-interconnects/terminal-blocks-panel-mount/425), or a [panel-mount JST-XH board](https://kc3dprint.com/products/panel-mount-jst-xh-board) | Rear of the bay. The rings and the nest fan land here; the drawer harness plugs into it. JST wire-to-wire is keyed and awkward to panel-mount, so a barrier terminal strip is the simpler answer. |
 | Closed-cell gasket sheet | 1 | | Drawer face plate, outworld shell |
 | Toggle clamps or knurled thumbscrews | 4–6 | | Compress the outworld gasket. Must be releasable by hand with the column in place. |
 | [Aquarium-safe silicone sealant](https://www.amazon.com/Aquarium-Marine-Silicone-Sealant-Adhesive/dp/B012NOVTD2) | 1 | | Gaskets and secondary sealing |
@@ -138,7 +219,7 @@ Below 8 in those two demands collide.
 | Riser plug caps | 3 | | **Manual** service closure — deliberately not powered |
 | Shallow tray (moat) | 1 | | The whole column stands in it. Last line of containment. |
 | [byFormica PTFE Plus Fluon](https://www.amazon.com/byFormica-Insect-Escape-Prevention-Coating/dp/B0FBKSRJFG) | 1 | | Band on the inner wall below the lid rim |
-| [Tetramorium immigrans colony](https://www.statesideants.com/product-page/tetramorium-immigrans) | 1 | | $28.99. Ordered last. |
+| [Tetramorium immigrans colony](https://www.statesideants.com/product-page/tetramorium-immigrans) | 1 | | **$28.99 ✔.** Ordered last, after two weeks of empty running. |
 
 ## Hydration
 
@@ -156,9 +237,9 @@ Below 8 in those two demands collide.
 |---|---|---|
 | [ESP32 DevKit (ESP-WROOM-32)](https://www.amazon.com/ESP32-DEVKIT-ESP-WROOM-32-4MB-CP2101/dp/B07F1GWJ1N) | 1 | Runs .NET nanoFramework. On the drawer. |
 | [Hilitchi DS18B20 waterproof probes, 5-pack](https://www.amazon.com/Hilitchi-DS18B20-Waterproof-Temperature-Sensors/dp/B018KFX5X0) | 1 | 3 used (nest bottom, nest top, outworld), 2 spare |
-| [Adafruit SHT31-D breakout](https://www.adafruit.com/product/2857) | **2** | 0x44 outworld, 0x45 nest — see below |
+| [Adafruit SHT31-D breakout](https://www.adafruit.com/product/2857) | **2** | **$13.95 ea ✔** — 0x44 outworld, 0x45 nest, see below |
 | [DFRobot Gravity capacitive soil moisture sensor](https://www.amazon.com/DFROBOT-Gravity-Capacitive-Corrosion-Resistant/dp/B01GHY0N4K) | 1 | In the Ytong core. Must be on ADC1. |
-| [Adafruit IR break beam, 3 mm LEDs](https://www.adafruit.com/product/2167) | **3** | One pair per riser |
+| [Adafruit IR break beam, 3 mm LEDs](https://www.adafruit.com/product/2167) | **3** | **$2.95 ea ✔** — one pair per riser |
 | [IRLZ44N logic-level MOSFETs, 5-pack](https://www.amazon.com/Bestol-5PCS-IRLZ44N-MOSFET-220AB/dp/B07DWYGNHC) | 1 | All 5 used: heater, refill pump, feed pump, outworld fan, nest exhaust fan |
 | WS2812B / NeoPixel rings, ~12 px | 3 | Bonded into recesses under the outworld floor, one concentric with each riser mouth. Chained on one data line over ESP32 RMT. |
 
@@ -166,7 +247,7 @@ Below 8 in those two demands collide.
 
 | Item | Qty | Notes |
 |---|---|---|
-| 12 V DC silicone heating cable, ~20 W | 1 | Wraps the outside of the nest section — no penetration at all |
+| 12 V DC silicone heating cable, ~20 W | 1 | [OEM Heaters 12 V DC, 5 W/ft](https://www.oemheaters.com/product/6109/12v-dc-heat-cable-5-wattsfoot) at 4 ft = 20 W, or a pre-assembled 12 V silicone heating wire. Wraps the outside of the nest section — no penetration at all. |
 | [Gdstime 40 mm 5 V fan](https://www.amazon.com/Gdstime-40mm-Small-Brushless-Cooling/dp/B00MYZADCY) | **2** | One in the lid, one bonded over the nest exhaust port. Both RH-gated, on different zones. |
 | 12 V 3 A PSU | 1 | Single supply for the whole column |
 | Buck converter 12 V to 5 V (MP1584 / LM2596) | 1 | Feeds ESP32, fans, LEDs, IR emitters |
@@ -190,7 +271,8 @@ Below 8 in those two demands collide.
 
 - [Vastar 16-in-1 soldering iron kit](https://www.amazon.com/Vastar-Temperature-Adjustable-Desoldering-Anti-static/dp/B0747KYF6S)
 - [Performance Tool mini tubing cutter](https://www.amazon.com/Performance-Tool-W82006-Vacuum-Cutter/dp/B07324LG4X)
-- [Breadboard + jumper wire kit](https://www.amazon.com/clp/B0GXHDX4QZ)
+- Breadboard + jumper wire kit — any 830-point board with a jumper assortment. (The link that
+  was here pointed at an Amazon `/clp/` landing page, which no longer resolves.)
 - [SparkFun basic digital multimeter](https://www.amazon.com/Digital-Multimeter-Basic-by-Sparkfun/dp/B00NBVO2EU)
 - Step drill bit (clean holes in acrylic without cracking), clamps, spoon or loop tool for Ytong
 

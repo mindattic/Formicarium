@@ -8,6 +8,11 @@ experiment at the mouth of each riser. Firmware in C# on .NET nanoFramework; das
 the firmware compiles to a deployable image, the control logic is unit-tested on the desktop, and
 the dashboard runs the real firmware policy against a colony simulator.
 
+Parts links were last checked **2026-09-03**; the planning total is roughly **$560–640** excluding
+tools. Four prices are confirmed against the vendor, the rest are estimates — and one part, the
+AAC nest core, is hard to buy in small quantities in the US and should be settled before any
+acrylic is cut. `docs/bom.md` has the detail.
+
 ## Layout
 
 ```

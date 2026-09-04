@@ -51,7 +51,8 @@ Four properties drive this shape:
   angle of about 45°, dominated by where the ballast sits rather than by height.
 - **Nothing to disconnect.** Every riser is solvent-welded through a flat plate with a collar
   against each face. That is a chemical weld, not a friction fit — there is nothing to work loose,
-  and about 3 in² of welded annulus per plate per riser against a service load under two pounds.
+  and 5.4 in² of welded annulus per plate per riser (two 2 in collars at 2.7 in² each) against a
+  service load under two pounds.
 - **Every sealed joint lands on a flat surface.** An O-ring cannot seat on a curve and a riser
   welded to a curved wall cannot be clamped while it cures, which is why the section is square.
 
