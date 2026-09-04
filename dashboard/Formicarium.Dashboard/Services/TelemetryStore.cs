@@ -1,5 +1,6 @@
+using Formicarium.Dashboard.Data;
 using Formicarium.Dashboard.Models;
-using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Formicarium.Dashboard.Services;
 
@@ -18,70 +19,10 @@ public sealed record ChannelTotal(int Channel, long Crossings, int RiserDays);
 /// that riser was showing and how bright it was at the time. A count without the stimulus that
 /// produced it is uninterpretable after the fact, and by then the mapping has rotated away.
 /// </summary>
-public sealed class TelemetryStore
+public sealed class TelemetryStore(IDbContextFactory<FormicariumDbContext> contextFactory, ILogger<TelemetryStore> logger)
 {
-    private readonly string _connectionString;
-    private readonly ILogger<TelemetryStore> _logger;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private long[]? _previousCumulative;
-
-    public TelemetryStore(IConfiguration configuration, ILogger<TelemetryStore> logger)
-    {
-        _logger = logger;
-
-        var path = configuration["Telemetry:DatabasePath"] ?? "formicarium.db";
-        _connectionString = new SqliteConnectionStringBuilder { DataSource = path }.ToString();
-
-        Initialise();
-    }
-
-    private void Initialise()
-    {
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
-
-        using var command = connection.CreateCommand();
-
-        // Failed sensors are stored as NULL rather than as a value plus a flag. On the wire the
-        // firmware uses explicit Ok flags because its JSON serialiser is minimal; in a database
-        // NULL is the honest representation, and it makes AVG and MIN skip bad samples for free
-        // instead of quietly averaging in zeroes.
-        command.CommandText = """
-            CREATE TABLE IF NOT EXISTS samples (
-                ts             INTEGER PRIMARY KEY,
-                nest_bottom_c  REAL,
-                nest_top_c     REAL,
-                outworld_c     REAL,
-                nest_rh        REAL,
-                outworld_rh    REAL,
-                soil_pct       REAL,
-                heater         INTEGER NOT NULL,
-                refill         INTEGER NOT NULL,
-                feed           INTEGER NOT NULL,
-                fan            INTEGER NOT NULL,
-                nest_fan       INTEGER NOT NULL,
-                faults         INTEGER NOT NULL,
-                lighting_mode  INTEGER NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS riser_samples (
-                ts          INTEGER NOT NULL,
-                riser       INTEGER NOT NULL,
-                cumulative  INTEGER NOT NULL,
-                crossings   INTEGER NOT NULL,
-                rate        REAL    NOT NULL,
-                channel     INTEGER NOT NULL,
-                brightness  REAL    NOT NULL,
-                day_number  INTEGER NOT NULL,
-                PRIMARY KEY (ts, riser)
-            );
-
-            CREATE INDEX IF NOT EXISTS ix_riser_channel ON riser_samples (channel);
-            CREATE INDEX IF NOT EXISTS ix_riser_day ON riser_samples (day_number, riser);
-            """;
-
-        command.ExecuteNonQuery();
-    }
 
     public async Task RecordAsync(DeviceState state, CancellationToken cancellationToken = default)
     {
@@ -89,36 +30,32 @@ public sealed class TelemetryStore
 
         try
         {
-            await using var connection = new SqliteConnection(_connectionString);
-            await connection.OpenAsync(cancellationToken);
-            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+            await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-            await using (var command = connection.CreateCommand())
+            var existingSample = await context.Samples.FindAsync([state.TimestampUnixMs], cancellationToken);
+            if (existingSample is not null)
             {
-                command.CommandText = """
-                    INSERT OR REPLACE INTO samples
-                        (ts, nest_bottom_c, nest_top_c, outworld_c, nest_rh, outworld_rh, soil_pct,
-                         heater, refill, feed, fan, nest_fan, faults, lighting_mode)
-                    VALUES ($ts, $nb, $nt, $ow, $nrh, $orh, $soil, $h, $m, $f, $fan, $nestfan, $faults, $mode);
-                    """;
-
-                command.Parameters.AddWithValue("$ts", state.TimestampUnixMs);
-                command.Parameters.AddWithValue("$nb", Nullable(state.NestBottomTempC, state.NestBottomTempOk));
-                command.Parameters.AddWithValue("$nt", Nullable(state.NestTopTempC, state.NestTopTempOk));
-                command.Parameters.AddWithValue("$ow", Nullable(state.OutworldTempC, state.OutworldTempOk));
-                command.Parameters.AddWithValue("$nrh", Nullable(state.NestHumidityPct, state.NestHumidityOk));
-                command.Parameters.AddWithValue("$orh", Nullable(state.OutworldHumidityPct, state.OutworldHumidityOk));
-                command.Parameters.AddWithValue("$soil", Nullable(state.SoilMoisturePct, state.SoilMoistureOk));
-                command.Parameters.AddWithValue("$h", state.HeaterOn ? 1 : 0);
-                command.Parameters.AddWithValue("$m", state.RefillPumpOn ? 1 : 0);
-                command.Parameters.AddWithValue("$f", state.FeedPumpOn ? 1 : 0);
-                command.Parameters.AddWithValue("$fan", state.FanOn ? 1 : 0);
-                command.Parameters.AddWithValue("$nestfan", state.NestFanOn ? 1 : 0);
-                command.Parameters.AddWithValue("$faults", state.Faults);
-                command.Parameters.AddWithValue("$mode", state.LightingMode);
-
-                await command.ExecuteNonQueryAsync(cancellationToken);
+                context.Samples.Remove(existingSample);
             }
+
+            context.Samples.Add(new Sample
+            {
+                Ts = state.TimestampUnixMs,
+                NestBottomC = Nullable(state.NestBottomTempC, state.NestBottomTempOk),
+                NestTopC = Nullable(state.NestTopTempC, state.NestTopTempOk),
+                OutworldC = Nullable(state.OutworldTempC, state.OutworldTempOk),
+                NestRh = Nullable(state.NestHumidityPct, state.NestHumidityOk),
+                OutworldRh = Nullable(state.OutworldHumidityPct, state.OutworldHumidityOk),
+                SoilPct = Nullable(state.SoilMoisturePct, state.SoilMoistureOk),
+                Heater = state.HeaterOn,
+                Refill = state.RefillPumpOn,
+                Feed = state.FeedPumpOn,
+                Fan = state.FanOn,
+                NestFan = state.NestFanOn,
+                Faults = state.Faults,
+                LightingMode = state.LightingMode
+            });
 
             for (int riser = 0; riser < state.RiserCounts.Length; riser++)
             {
@@ -135,25 +72,26 @@ public sealed class TelemetryStore
                         : cumulative;
                 }
 
-                await using var command = connection.CreateCommand();
-                command.CommandText = """
-                    INSERT OR REPLACE INTO riser_samples
-                        (ts, riser, cumulative, crossings, rate, channel, brightness, day_number)
-                    VALUES ($ts, $riser, $cum, $cross, $rate, $channel, $bright, $day);
-                    """;
+                var existingRiserSample = await context.RiserSamples.FindAsync([state.TimestampUnixMs, riser], cancellationToken);
+                if (existingRiserSample is not null)
+                {
+                    context.RiserSamples.Remove(existingRiserSample);
+                }
 
-                command.Parameters.AddWithValue("$ts", state.TimestampUnixMs);
-                command.Parameters.AddWithValue("$riser", riser);
-                command.Parameters.AddWithValue("$cum", cumulative);
-                command.Parameters.AddWithValue("$cross", crossings);
-                command.Parameters.AddWithValue("$rate", At(state.RiserRatesPerMinute, riser));
-                command.Parameters.AddWithValue("$channel", (int)At(state.RiserChannel, riser));
-                command.Parameters.AddWithValue("$bright", At(state.RiserBrightness, riser));
-                command.Parameters.AddWithValue("$day", state.AssignmentDayNumber);
-
-                await command.ExecuteNonQueryAsync(cancellationToken);
+                context.RiserSamples.Add(new RiserSample
+                {
+                    Ts = state.TimestampUnixMs,
+                    Riser = riser,
+                    Cumulative = cumulative,
+                    Crossings = crossings,
+                    Rate = At(state.RiserRatesPerMinute, riser),
+                    Channel = (int)At(state.RiserChannel, riser),
+                    Brightness = At(state.RiserBrightness, riser),
+                    DayNumber = state.AssignmentDayNumber
+                });
             }
 
+            await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
             _previousCumulative = (long[])state.RiserCounts.Clone();
@@ -162,7 +100,7 @@ public sealed class TelemetryStore
         {
             // Losing a telemetry row must never take down the dashboard, and certainly must not
             // interfere with the controller keeping the colony alive.
-            _logger.LogWarning(ex, "Failed to record telemetry sample");
+            logger.LogWarning(ex, "Failed to record telemetry sample");
         }
         finally
         {
@@ -173,32 +111,20 @@ public sealed class TelemetryStore
     public async Task<IReadOnlyList<TrendPoint>> GetTrendAsync(TimeSpan window, int maxPoints = 400, CancellationToken cancellationToken = default)
     {
         var since = DateTimeOffset.UtcNow.Subtract(window).ToUnixTimeMilliseconds();
-        var points = new List<TrendPoint>();
 
-        await using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken);
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT ts, nest_bottom_c, nest_top_c, outworld_c, soil_pct, heater
-            FROM samples
-            WHERE ts >= $since
-            ORDER BY ts;
-            """;
-        command.Parameters.AddWithValue("$since", since);
-
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-
-        while (await reader.ReadAsync(cancellationToken))
-        {
-            points.Add(new TrendPoint(
-                DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(0)),
-                reader.IsDBNull(1) ? null : reader.GetDouble(1),
-                reader.IsDBNull(2) ? null : reader.GetDouble(2),
-                reader.IsDBNull(3) ? null : reader.GetDouble(3),
-                reader.IsDBNull(4) ? null : reader.GetDouble(4),
-                reader.GetInt32(5) == 1));
-        }
+        var points = await context.Samples
+            .Where(s => s.Ts >= since)
+            .OrderBy(s => s.Ts)
+            .Select(s => new TrendPoint(
+                DateTimeOffset.FromUnixTimeMilliseconds(s.Ts),
+                s.NestBottomC,
+                s.NestTopC,
+                s.OutworldC,
+                s.SoilPct,
+                s.Heater))
+            .ToListAsync(cancellationToken);
 
         return Decimate(points, maxPoints);
     }
@@ -215,56 +141,47 @@ public sealed class TelemetryStore
     /// </summary>
     public async Task<IReadOnlyList<ChannelTotal>> GetChannelTotalsAsync(CancellationToken cancellationToken = default)
     {
-        var results = new List<ChannelTotal>();
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-        await using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken);
+        // SQL Server has no COUNT(DISTINCT <tuple>), so the distinct (day, riser) pairs per
+        // channel are counted client-side rather than folded into the grouped sum below.
+        var sums = await context.RiserSamples
+            .GroupBy(r => r.Channel)
+            .Select(g => new { Channel = g.Key, Crossings = g.Sum(x => x.Crossings) })
+            .ToListAsync(cancellationToken);
 
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT channel, SUM(crossings), COUNT(DISTINCT day_number || ':' || riser)
-            FROM riser_samples
-            GROUP BY channel
-            ORDER BY channel;
-            """;
+        var riserDays = await context.RiserSamples
+            .Select(r => new { r.Channel, r.DayNumber, r.Riser })
+            .Distinct()
+            .ToListAsync(cancellationToken);
 
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var riserDayCounts = riserDays
+            .GroupBy(r => r.Channel)
+            .ToDictionary(g => g.Key, g => g.Count());
 
-        while (await reader.ReadAsync(cancellationToken))
-        {
-            results.Add(new ChannelTotal(reader.GetInt32(0), reader.GetInt64(1), reader.GetInt32(2)));
-        }
-
-        return results;
+        return sums
+            .Select(s => new ChannelTotal(s.Channel, s.Crossings, riserDayCounts.GetValueOrDefault(s.Channel)))
+            .OrderBy(c => c.Channel)
+            .ToList();
     }
 
     /// <summary>The same crossings grouped by tube, which is the positional confound the rotation controls for.</summary>
     public async Task<IReadOnlyList<RiserDayTotal>> GetRiserTotalsAsync(CancellationToken cancellationToken = default)
     {
-        var results = new List<RiserDayTotal>();
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-        await using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken);
+        var totals = await context.RiserSamples
+            .GroupBy(r => new { r.Riser, r.Channel })
+            .Select(g => new { g.Key.Riser, g.Key.Channel, Crossings = g.Sum(x => x.Crossings) })
+            .ToListAsync(cancellationToken);
 
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT riser, channel, SUM(crossings)
-            FROM riser_samples
-            GROUP BY riser, channel
-            ORDER BY riser, channel;
-            """;
-
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-
-        while (await reader.ReadAsync(cancellationToken))
-        {
-            results.Add(new RiserDayTotal(reader.GetInt32(0), reader.GetInt32(1), reader.GetInt64(2)));
-        }
-
-        return results;
+        return totals
+            .Select(t => new RiserDayTotal(t.Riser, t.Channel, t.Crossings))
+            .OrderBy(r => r.Riser).ThenBy(r => r.Channel)
+            .ToList();
     }
 
-    private static object Nullable(double value, bool ok) => ok ? value : DBNull.Value;
+    private static double? Nullable(double value, bool ok) => ok ? value : null;
 
     private static double At(double[] values, int index) => index < values.Length ? values[index] : 0.0;
 

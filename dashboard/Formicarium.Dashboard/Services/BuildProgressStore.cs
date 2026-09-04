@@ -1,66 +1,26 @@
-using Microsoft.Data.Sqlite;
+using Formicarium.Dashboard.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Formicarium.Dashboard.Services;
 
 /// <summary>
 /// Which build steps are done.
 ///
-/// This lives in the same SQLite file as the telemetry rather than in the browser, because a
+/// This lives in the same database as the telemetry rather than in the browser, because a
 /// build checklist that is scoped to one browser profile is worse than useless: the guide is read
 /// on a phone at the bench and on a laptop at the desk, and a step ticked in one place has to be
 /// ticked in the other. There is exactly one column being built, so there is exactly one list.
 /// </summary>
-public sealed class BuildProgressStore
+public sealed class BuildProgressStore(IDbContextFactory<FormicariumDbContext> contextFactory)
 {
-    private readonly string _connectionString;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
-
-    public BuildProgressStore(IConfiguration configuration)
-    {
-        var path = configuration["Telemetry:DatabasePath"] ?? "formicarium.db";
-        _connectionString = new SqliteConnectionStringBuilder { DataSource = path }.ToString();
-
-        Initialise();
-    }
-
-    private void Initialise()
-    {
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
-
-        using var command = connection.CreateCommand();
-
-        // Only completed steps are stored. An absent row means "not done", which keeps the table
-        // correct when the sequence itself is edited — a step that no longer exists simply stops
-        // being read, and a step that is inserted starts out unticked.
-        command.CommandText = """
-            CREATE TABLE IF NOT EXISTS build_progress (
-                step        INTEGER PRIMARY KEY,
-                completed_at INTEGER NOT NULL
-            );
-            """;
-
-        command.ExecuteNonQuery();
-    }
 
     public async Task<HashSet<int>> CompletedAsync(CancellationToken cancellationToken = default)
     {
-        await using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken);
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-        await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT step FROM build_progress;";
-
-        var completed = new HashSet<int>();
-
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-
-        while (await reader.ReadAsync(cancellationToken))
-        {
-            completed.Add(reader.GetInt32(0));
-        }
-
-        return completed;
+        var steps = await context.BuildProgress.Select(b => b.Step).ToListAsync(cancellationToken);
+        return [.. steps];
     }
 
     public async Task SetAsync(int step, bool done, CancellationToken cancellationToken = default)
@@ -69,25 +29,23 @@ public sealed class BuildProgressStore
 
         try
         {
-            await using var connection = new SqliteConnection(_connectionString);
-            await connection.OpenAsync(cancellationToken);
+            await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-            await using var command = connection.CreateCommand();
+            var existing = await context.BuildProgress.FindAsync([step], cancellationToken);
 
             if (done)
             {
-                command.CommandText =
-                    "INSERT OR REPLACE INTO build_progress (step, completed_at) VALUES ($step, $at);";
-                command.Parameters.AddWithValue("$at", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                if (existing is null)
+                {
+                    context.BuildProgress.Add(new BuildProgressEntry { Step = step, CompletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() });
+                }
             }
-            else
+            else if (existing is not null)
             {
-                command.CommandText = "DELETE FROM build_progress WHERE step = $step;";
+                context.BuildProgress.Remove(existing);
             }
 
-            command.Parameters.AddWithValue("$step", step);
-
-            await command.ExecuteNonQueryAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
         }
         finally
         {
@@ -101,13 +59,8 @@ public sealed class BuildProgressStore
 
         try
         {
-            await using var connection = new SqliteConnection(_connectionString);
-            await connection.OpenAsync(cancellationToken);
-
-            await using var command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM build_progress;";
-
-            await command.ExecuteNonQueryAsync(cancellationToken);
+            await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+            await context.BuildProgress.ExecuteDeleteAsync(cancellationToken);
         }
         finally
         {

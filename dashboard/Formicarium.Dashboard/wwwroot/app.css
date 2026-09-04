@@ -238,6 +238,21 @@ h3 { font-size: .95rem; margin: 1.75rem 0 .5rem; color: var(--ink); font-weight:
 
 /* --- blueprint viewer ----------------------------------------------------- */
 
+/* The outer host Blazor renders. It never re-renders after mount — everything inside, including
+   the engine tabs, is owned by blueprint.js so the assembly list and the meshes it toggles stay
+   declared in one place. */
+.build-viewer-shell { display: flex; flex-direction: column; gap: .5rem; }
+
+.build-engine-tabs { display: flex; gap: .25rem; }
+
+.build-engine-tabs button {
+    padding: .4rem .85rem; border-radius: var(--radius); border: 1px solid transparent;
+    background: none; color: var(--ink-dim); font-size: .8rem; cursor: pointer;
+}
+
+.build-engine-tabs button:hover { color: var(--ink); background: var(--panel); }
+.build-engine-tabs button[aria-selected="true"] { color: var(--ground); background: var(--accent); font-weight: 600; }
+
 .build-viewer {
     display: grid; grid-template-columns: 1fr;
     background: var(--panel); border: 1px solid var(--panel-edge); border-radius: var(--radius);
@@ -258,6 +273,10 @@ h3 { font-size: .95rem; margin: 1.75rem 0 .5rem; color: var(--ink); font-weight:
     font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
     color: var(--ink-faint); font-weight: 600; margin-bottom: .5rem;
 }
+
+.build-key-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
+.build-key-head .build-eyebrow { margin-bottom: 0; }
+.build-key-reset { font-size: .68rem; padding: .15rem .45rem; letter-spacing: .04em; text-transform: uppercase; }
 
 .build-key { list-style: none; padding: 0; margin: 0 0 .9rem; }
 .build-key li { margin: 0; }
