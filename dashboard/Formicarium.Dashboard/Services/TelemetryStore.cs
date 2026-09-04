@@ -59,6 +59,7 @@ public sealed class TelemetryStore
                 refill         INTEGER NOT NULL,
                 feed           INTEGER NOT NULL,
                 fan            INTEGER NOT NULL,
+                nest_fan       INTEGER NOT NULL,
                 faults         INTEGER NOT NULL,
                 lighting_mode  INTEGER NOT NULL
             );
@@ -97,8 +98,8 @@ public sealed class TelemetryStore
                 command.CommandText = """
                     INSERT OR REPLACE INTO samples
                         (ts, nest_bottom_c, nest_top_c, outworld_c, nest_rh, outworld_rh, soil_pct,
-                         heater, refill, feed, fan, faults, lighting_mode)
-                    VALUES ($ts, $nb, $nt, $ow, $nrh, $orh, $soil, $h, $m, $f, $fan, $faults, $mode);
+                         heater, refill, feed, fan, nest_fan, faults, lighting_mode)
+                    VALUES ($ts, $nb, $nt, $ow, $nrh, $orh, $soil, $h, $m, $f, $fan, $nestfan, $faults, $mode);
                     """;
 
                 command.Parameters.AddWithValue("$ts", state.TimestampUnixMs);
@@ -112,6 +113,7 @@ public sealed class TelemetryStore
                 command.Parameters.AddWithValue("$m", state.RefillPumpOn ? 1 : 0);
                 command.Parameters.AddWithValue("$f", state.FeedPumpOn ? 1 : 0);
                 command.Parameters.AddWithValue("$fan", state.FanOn ? 1 : 0);
+                command.Parameters.AddWithValue("$nestfan", state.NestFanOn ? 1 : 0);
                 command.Parameters.AddWithValue("$faults", state.Faults);
                 command.Parameters.AddWithValue("$mode", state.LightingMode);
 
