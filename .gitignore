@@ -6,3 +6,5 @@ obj/
 *.db-wal
 .vs/
 .claude/quicksave.md
+firmware/packages/
+firmware/.build/

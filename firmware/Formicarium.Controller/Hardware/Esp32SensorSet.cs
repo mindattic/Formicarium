@@ -151,7 +151,7 @@ namespace Formicarium.Controller.Hardware
             {
                 Iot.Device.Ds18b20.Ds18b20 probe = new Iot.Device.Ds18b20.Ds18b20(_oneWire, romId, false);
 
-                if (!probe.TryReadTemperature(out nanoFramework.UnitsNet.Temperature temperature))
+                if (!probe.TryReadTemperature(out UnitsNet.Temperature temperature))
                 {
                     return Reading.Bad(nowUtc);
                 }

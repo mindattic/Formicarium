@@ -5,8 +5,8 @@ Ytong nest core, passive hydration, three always-open risers, and a closed-loop 
 at the mouth of each riser. Firmware in C# on .NET nanoFramework; dashboard in Blazor.
 
 **Nothing has been ordered yet.** The repo is complete on paper and verifiable without hardware:
-the control logic is unit-tested on the desktop, and the dashboard runs the real firmware policy
-against a colony simulator.
+the firmware compiles to a deployable image, the control logic is unit-tested on the desktop, and
+the dashboard runs the real firmware policy against a colony simulator.
 
 ## Layout
 
@@ -52,6 +52,7 @@ missing from the nanoFramework base class library.
 ```bash
 dotnet test Formicarium.slnx                          # 55 control-logic tests
 dotnet run --project dashboard/Formicarium.Dashboard  # dashboard against the simulator
+pwsh firmware/build-firmware.ps1                      # firmware -> deployable .pe image
 ```
 
 The dashboard defaults to `Controller:UseSimulator: true`. The simulator models the thermal,
@@ -65,17 +66,40 @@ Open `docs/build-guide.html` directly in a browser, or read the
 
 ## Building the firmware
 
-`Formicarium.Controller.nfproj` is **not** in the solution and does not build with `dotnet build`.
-It needs the nanoFramework Visual Studio extension, which restores the packages in
-`packages.config` and adds the assembly references. Flashing uses `nanoff`.
+```powershell
+./firmware/build-firmware.ps1
+```
+
+Produces `firmware/Formicarium.Controller/bin/Release/Formicarium.Controller.pe` plus 23
+dependency assemblies — the complete deployable image.
+
+The `.nfproj` is not in the solution and does not build with `dotnet build`: it targets
+`netnano1.0`, and the nanoFramework build tasks are .NET Framework assemblies, so it needs real
+MSBuild. It normally also needs the Visual Studio extension, but the script sidesteps that — the
+extension's VSIX is a zip, and the MSBuild props, targets and build-task assemblies sit inside it
+under `$MSBuild/nanoFramework/v1.0/` in exactly the layout a real install produces. The script
+downloads that release asset (pinned), extracts the folder into a gitignored `firmware/.build/`,
+restores `packages.config`, and points MSBuild at it with `-p:NanoFrameworkProjectSystemPath`.
+Nothing is installed machine-wide and no extension is registered.
+
+Prerequisites: Visual Studio or Build Tools (for MSBuild), and `dotnet tool install -g nanoff`
+for flashing.
 
 WiFi credentials are deliberately absent from source. They live in the device's own configuration
 block, written once with `nanoff --updatessid`, so they never enter git and survive a reflash.
 
-**Not yet verified on hardware:** the `.nfproj` has never been compiled here, and the exact call
-signatures of the `Ds18b20`, `Sht3x` and `Ws28xx` bindings track their NuGet packages. If one has
-moved it will surface inside `Hardware/`, which is the only place those types appear — `Core/` is
-insulated from them by construction.
+**What compiling it caught.** Five real defects that no amount of desktop testing would have
+found, because they were all in the layer `Core/` is insulated from:
+
+- `Math` is not in nanoFramework's `mscorlib` — it is a separate `System.Math` assembly.
+- `UnitsNet`'s root namespace is `UnitsNet`, not `nanoFramework.UnitsNet`.
+- The WS2812B RMT driver needs `nanoFramework.Hardware.Esp32.Rmt`, a package I had not listed.
+- `HttpListener`'s response stream needs `nanoFramework.System.IO.Streams`.
+- Ten of the nineteen package versions I had guessed did not exist, and the OneWire package is
+  `nanoFramework.Device.OneWire`, not `System.Device.OneWire`.
+
+**Still unverified:** the firmware has never run on an ESP32. It compiles and links against the
+real bindings, which rules out wrong types and wrong signatures, but not wrong behaviour.
 
 ## Safety rules the tests exist to prove
 

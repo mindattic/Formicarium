@@ -12,6 +12,7 @@ using Formicarium.Core.Config;
 using Formicarium.Core.Control;
 using Formicarium.Core.State;
 using nanoFramework.Device.OneWire;
+using System.Net.NetworkInformation;
 using nanoFramework.Hardware.Esp32;
 using nanoFramework.Networking;
 
@@ -20,6 +21,8 @@ namespace Formicarium.Controller
     public class Program
     {
         private const int TickIntervalMs = 1000;
+        private const int NetworkWaitAttempts = 30;
+        private const int NetworkWaitIntervalMs = 1000;
 
         public static void Main()
         {
@@ -120,13 +123,70 @@ namespace Formicarium.Controller
             Configuration.SetPinFunction(PinMap.OneWireTx, DeviceFunction.COM3_TX);
         }
 
+        /// <summary>
+        /// Waits for an IP address and then for SNTP to set the clock.
+        ///
+        /// Done explicitly rather than through a helper because both halves are load-bearing and
+        /// worth being able to see. The IP matters only for the dashboard; the <b>clock</b> matters
+        /// to the colony, because the daily feed and the midnight colour rotation are wall-clock
+        /// scheduled. A controller that came up on an epoch date would dose at the wrong hour and
+        /// rotate the experiment's channel mapping against a meaningless day number.
+        ///
+        /// WiFi credentials are not here, and not anywhere in source: they live in the device's own
+        /// configuration block, written once with <c>nanoff --updatessid</c>.
+        /// </summary>
         private static bool WaitForNetwork()
         {
             try
             {
-                // Credentials come from the device's stored configuration, written once with
-                // nanoff --updatessid. requiresDateTime waits for SNTP as well as an IP.
-                return WifiNetworkHelper.Reconnect(requiresDateTime: true, token: new CancellationTokenSource(60000).Token);
+                bool haveAddress = false;
+
+                for (int attempt = 0; attempt < NetworkWaitAttempts; attempt++)
+                {
+                    NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+                    for (int i = 0; i < interfaces.Length; i++)
+                    {
+                        string address = interfaces[i].IPv4Address;
+
+                        if (address != null && address.Length > 0 && address != "0.0.0.0")
+                        {
+                            Debug.WriteLine("Network up at " + address);
+                            haveAddress = true;
+                            break;
+                        }
+                    }
+
+                    if (haveAddress)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(NetworkWaitIntervalMs);
+                }
+
+                if (!haveAddress)
+                {
+                    return false;
+                }
+
+                // SNTP is started by the runtime once the interface is up; this just waits for it
+                // to actually land. A year still in the 1970s means it has not.
+                for (int attempt = 0; attempt < NetworkWaitAttempts; attempt++)
+                {
+                    if (DateTime.UtcNow.Year > 2020)
+                    {
+                        Debug.WriteLine("Clock set: " + DateTime.UtcNow.ToString());
+                        return true;
+                    }
+
+                    Thread.Sleep(NetworkWaitIntervalMs);
+                }
+
+                // An IP but no clock. Running headless is safer than running on a fake date,
+                // because a wrong clock silently corrupts the feed schedule and the experiment log.
+                Debug.WriteLine("Network up but clock never set - running without scheduled actions");
+                return false;
             }
             catch (Exception ex)
             {
@@ -177,23 +237,29 @@ namespace Formicarium.Controller
         }
 
         /// <summary>
-        /// GPIO34 is ADC1 channel 6. The mapping is fixed in silicon; this exists so the pin
-        /// number stays the single source of truth in <see cref="PinMap"/>.
+        /// ADC1 channel for the configured soil pin. The GPIO-to-channel mapping is fixed in
+        /// silicon; this table exists so the pin number stays the single source of truth in
+        /// <see cref="PinMap"/> rather than being written twice.
+        ///
+        /// A switch statement here would be compiled away, since the pin is a const - the compiler
+        /// resolves it and warns that every other arm is unreachable. A lookup keeps the whole
+        /// mapping visible and reviewable against the datasheet.
         /// </summary>
         private static int SoilAdcChannel()
         {
-            switch (PinMap.SoilMoistureAdc)
+            int[] adc1Pins = new int[] { 36, 37, 38, 39, 32, 33, 34, 35 };
+
+            for (int channel = 0; channel < adc1Pins.Length; channel++)
             {
-                case 36: return 0;
-                case 37: return 1;
-                case 38: return 2;
-                case 39: return 3;
-                case 32: return 4;
-                case 33: return 5;
-                case 34: return 6;
-                case 35: return 7;
-                default: return 6;
+                if (adc1Pins[channel] == PinMap.SoilMoistureAdc)
+                {
+                    return channel;
+                }
             }
+
+            // Not an ADC1 pin at all. ADC2 is unusable while WiFi is active, so this is a wiring
+            // design error rather than a runtime condition worth recovering from.
+            throw new ArgumentException("Soil pin GPIO" + PinMap.SoilMoistureAdc + " is not on ADC1");
         }
     }
 }

@@ -1,6 +1,9 @@
 <title>Formicarium Column</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three/0.160.0/three.min.js"></script>
+<!-- cdnjs names this library "three.js", not "three" — the shorter path 404s at every version.
+     r160 is also the last release to ship a UMD build that defines a global THREE; from r161 it
+     is ES-modules only. Pinned deliberately, not lazily. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 
 <style>
 /* Whiteprint / blueprint. Light mode is drafting paper with blue-grey line work; dark mode is
@@ -1014,8 +1017,9 @@ if (typeof THREE === "undefined") {
   canvas.remove();
   const p = document.createElement("div");
   p.className = "fallback";
-  p.innerHTML = "<strong>3D view unavailable offline.</strong> The blueprint needs Three.js from a CDN. " +
-    "Every dimension it shows is in the side elevation and the key figures above.";
+  p.innerHTML = "<strong>3D view could not load.</strong> The blueprint needs Three.js from cdnjs, " +
+    "so this appears if the CDN is unreachable or blocked. Nothing is lost: every dimension it " +
+    "shows is also in the side elevation and the key figures above.";
   document.querySelector(".viewer").prepend(p);
 } else {
   buildScene();
