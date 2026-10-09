@@ -2,6 +2,8 @@ using Formicarium.Dashboard.Components;
 using Formicarium.Dashboard.Data;
 using Formicarium.Dashboard.Services;
 using Microsoft.EntityFrameworkCore;
+using MindAttic.Log;
+using MindAttic.Log.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,18 @@ var connectionString = builder.Configuration.GetConnectionString("Formicarium")
                         ?? throw new InvalidOperationException("ConnectionStrings:Formicarium must be set.");
 
 builder.Services.AddDbContextFactory<FormicariumDbContext>(options => options.UseSqlServer(connectionString));
+
+// First MindAttic.Log integration for this app (see that repo's docs/MIGRATION.md): a genuine
+// general-purpose SQL Server database of its own (Samples/RiserSamples/BuildProgress), not an
+// auth-only one, so this is the SQL Server tier. ColonyMonitor/TelemetryStore already call
+// ILogger<T> — no call-site changes, just the sink underneath. The table itself is created once
+// at startup below, next to the existing EF migration; AddMindAtticLog never auto-creates it.
+builder.Services.AddMindAtticLog(o =>
+{
+    o.Application = "Formicarium";
+    o.Destination = LogDestination.SqlServer;
+    o.SqlServerConnectionString = connectionString;
+});
 
 builder.Services.AddSingleton<TelemetryStore>();
 builder.Services.AddSingleton<BuildProgressStore>();
@@ -53,6 +67,14 @@ using (var scope = app.Services.CreateScope())
     var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<FormicariumDbContext>>();
     await using var context = await contextFactory.CreateDbContextAsync();
     await context.Database.MigrateAsync();
+
+    // MindAttic.Log's table is not EF-managed and never auto-created by the sink (LOG-LAW-1) —
+    // created here, once, next to the DbContext's own migration above.
+    await using var logSchemaConnection = new Microsoft.Data.SqlClient.SqlConnection(connectionString);
+    await logSchemaConnection.OpenAsync();
+    await using var logSchemaCommand = logSchemaConnection.CreateCommand();
+    logSchemaCommand.CommandText = MindAttic.Log.Schema.LogSchema.CreateTableSqlServer;
+    await logSchemaCommand.ExecuteNonQueryAsync();
 }
 
 if (!app.Environment.IsDevelopment())
