@@ -31,7 +31,8 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
-    <PackageReference Include="MindAttic.Log" Version="2.0.0" />
+    <PackageReference Include="MindAttic.Log" Version="3.0.0" />
+    <PackageReference Include="MindAttic.Vault" Version="6.0.0" />
   </ItemGroup>
 
 </Project>

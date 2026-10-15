@@ -2,8 +2,8 @@ using Formicarium.Dashboard.Components;
 using Formicarium.Dashboard.Data;
 using Formicarium.Dashboard.Services;
 using Microsoft.EntityFrameworkCore;
-using MindAttic.Log;
 using MindAttic.Log.Extensions;
+using MindAttic.Vault.Paths;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,16 +15,16 @@ var connectionString = builder.Configuration.GetConnectionString("Formicarium")
 
 builder.Services.AddDbContextFactory<FormicariumDbContext>(options => options.UseSqlServer(connectionString));
 
-// First MindAttic.Log integration for this app (see that repo's docs/MIGRATION.md): a genuine
-// general-purpose SQL Server database of its own (Samples/RiserSamples/BuildProgress), not an
-// auth-only one, so this is the SQL Server tier. ColonyMonitor/TelemetryStore already call
-// ILogger<T> — no call-site changes, just the sink underneath. The table itself is created once
-// at startup below, next to the existing EF migration; AddMindAtticLog never auto-creates it.
+// Phase 2 (MindAttic.Log 3.0.0, see its docs/BIBLE.md §1.1): logs now live in their own standalone
+// MindAttic.Log.db under Vault's shared roaming root, not FormicariumDbContext's SQL Server
+// database — Phase 1 wrote dbo.MindAttic_Log into the same database FormicariumDbContext uses;
+// that's superseded. ColonyMonitor/TelemetryStore already call ILogger<T> — no call-site changes.
+// Phase 1's historical rows are carried forward and that table dropped, below, next to the
+// existing EF migration.
 builder.Services.AddMindAtticLog(o =>
 {
     o.Application = "Formicarium";
-    o.Destination = LogDestination.SqlServer;
-    o.SqlServerConnectionString = connectionString;
+    o.DbPath = VaultPaths.LoggingDbPath("Formicarium");
 });
 
 builder.Services.AddSingleton<TelemetryStore>();
@@ -68,13 +68,11 @@ using (var scope = app.Services.CreateScope())
     await using var context = await contextFactory.CreateDbContextAsync();
     await context.Database.MigrateAsync();
 
-    // MindAttic.Log's table is not EF-managed and never auto-created by the sink (LOG-LAW-1) —
-    // created here, once, next to the DbContext's own migration above.
-    await using var logSchemaConnection = new Microsoft.Data.SqlClient.SqlConnection(connectionString);
-    await logSchemaConnection.OpenAsync();
-    await using var logSchemaCommand = logSchemaConnection.CreateCommand();
-    logSchemaCommand.CommandText = MindAttic.Log.Schema.LogSchema.CreateTableSqlServer;
-    await logSchemaCommand.ExecuteNonQueryAsync();
+    // Phase 2: one-time copy of Phase 1's dbo.MindAttic_Log rows into the new standalone database,
+    // then drop that table — idempotent and a clean no-op on every later startup, same "applied on
+    // every startup, no fleet to coordinate" posture as the EF migration immediately above.
+    await MindAttic.Log.Migration.MindAtticLogMigrator.MigrateFromSqlServerAsync(
+        connectionString, VaultPaths.LoggingDbPath("Formicarium"), dropSource: true);
 }
 
 if (!app.Environment.IsDevelopment())
