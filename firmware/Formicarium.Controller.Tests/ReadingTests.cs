@@ -1,6 +1,6 @@
 using System;
 using Formicarium.Core.Sensing;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -13,91 +13,91 @@ namespace Formicarium.Controller.Tests
     {
         private static readonly DateTime T0 = TestDefaults.StartUtc;
 
-        [Fact]
+        [Test]
         public void DefaultReadingIsNotUsable()
         {
             Reading r = default(Reading);
 
-            Assert.False(r.IsValid);
-            Assert.False(r.IsUsable(T0, maxAgeSeconds: int.MaxValue, plausibleMin: double.MinValue, plausibleMax: double.MaxValue));
+            Assert.That(r.IsValid, Is.False);
+            Assert.That(r.IsUsable(T0, maxAgeSeconds: int.MaxValue, plausibleMin: double.MinValue, plausibleMax: double.MaxValue), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void BadReadingIsNotUsable()
         {
             Reading r = Reading.Bad(T0);
 
-            Assert.False(r.IsValid);
-            Assert.False(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -1000.0, plausibleMax: 1000.0));
+            Assert.That(r.IsValid, Is.False);
+            Assert.That(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -1000.0, plausibleMax: 1000.0), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void IsUsable_AgeExactlyAtMaxAgeSecondsIsStillUsable()
         {
             Reading r = Reading.Good(25.0, T0);
             DateTime now = T0.AddSeconds(30);
 
-            Assert.True(r.IsUsable(now, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0));
+            Assert.That(r.IsUsable(now, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void IsUsable_OneTickOlderThanMaxAgeSecondsIsNotUsable()
         {
             Reading r = Reading.Good(25.0, T0);
             DateTime now = T0.AddSeconds(30).AddTicks(1);
 
-            Assert.False(r.IsUsable(now, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0));
+            Assert.That(r.IsUsable(now, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void IsUsable_ValueExactlyAtPlausibleMinIsUsable()
         {
             Reading r = Reading.Good(-5.0, T0);
 
-            Assert.True(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0));
+            Assert.That(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void IsUsable_ValueJustBelowPlausibleMinIsNotUsable()
         {
             Reading r = Reading.Good(-5.0001, T0);
 
-            Assert.False(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0));
+            Assert.That(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void IsUsable_ValueExactlyAtPlausibleMaxIsUsable()
         {
             Reading r = Reading.Good(60.0, T0);
 
-            Assert.True(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0));
+            Assert.That(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void IsUsable_ValueJustAbovePlausibleMaxIsNotUsable()
         {
             Reading r = Reading.Good(60.0001, T0);
 
-            Assert.False(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0));
+            Assert.That(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void AgeSecondsIsNegativeWhenTakenUtcIsInTheFuture()
         {
             DateTime takenInFuture = T0.AddSeconds(5);
             Reading r = Reading.Good(25.0, takenInFuture);
 
-            Assert.Equal(-5.0, r.AgeSeconds(T0), precision: 10);
+            Assert.That(r.AgeSeconds(T0), Is.EqualTo(-5.0).Within(5e-11));
         }
 
-        [Fact]
+        [Test]
         public void IsUsable_AFutureTakenUtcDoesNotCountAsStale()
         {
             // A clock reading one tick ahead (e.g. a sensor task that time-stamped just before
             // the control loop's own clock read) must not be treated as a missing reading.
             Reading r = Reading.Good(25.0, T0.AddSeconds(5));
 
-            Assert.True(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0));
+            Assert.That(r.IsUsable(T0, maxAgeSeconds: 30, plausibleMin: -5.0, plausibleMax: 60.0), Is.True);
         }
     }
 }

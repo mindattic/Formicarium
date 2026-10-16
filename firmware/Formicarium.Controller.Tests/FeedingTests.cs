@@ -1,7 +1,7 @@
 using System;
 using Formicarium.Core.Config;
 using Formicarium.Core.Control;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -11,7 +11,7 @@ namespace Formicarium.Controller.Tests
         // dose lands at 14:00 UTC.
         private static readonly DateTime FeedTimeUtc = new DateTime(2026, 6, 1, 14, 0, 0);
 
-        [Fact]
+        [Test]
         public void ARebootAfterTheFeedHourDoesNotTriggerAnExtraDose()
         {
             FeedScheduler feed = new FeedScheduler(new Setpoints());
@@ -21,23 +21,23 @@ namespace Formicarium.Controller.Tests
             // reset would empty the syrup reservoir into the dish.
             DateTime bootUtc = FeedTimeUtc.AddHours(2);
 
-            Assert.False(feed.Update(bootUtc));
-            Assert.False(feed.IsDosing);
+            Assert.That(feed.Update(bootUtc), Is.False);
+            Assert.That(feed.IsDosing, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void DosesWhenTheScheduledTimeArrives()
         {
             FeedScheduler feed = new FeedScheduler(new Setpoints());
 
             DateTime beforeSlot = FeedTimeUtc.AddHours(-2);
-            Assert.False(feed.Update(beforeSlot));
+            Assert.That(feed.Update(beforeSlot), Is.False);
 
-            Assert.True(feed.Update(FeedTimeUtc));
-            Assert.True(feed.IsDosing);
+            Assert.That(feed.Update(FeedTimeUtc), Is.True);
+            Assert.That(feed.IsDosing, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void DoseStopsAfterTheConfiguredDuration()
         {
             Setpoints setpoints = new Setpoints();
@@ -47,13 +47,13 @@ namespace Formicarium.Controller.Tests
             feed.Update(FeedTimeUtc);
 
             DateTime midDose = FeedTimeUtc.AddSeconds(setpoints.FeedDoseSeconds - 1);
-            Assert.True(feed.Update(midDose));
+            Assert.That(feed.Update(midDose), Is.True);
 
             DateTime afterDose = FeedTimeUtc.AddSeconds(setpoints.FeedDoseSeconds);
-            Assert.False(feed.Update(afterDose));
+            Assert.That(feed.Update(afterDose), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void DosesAtMostOncePerLocalDay()
         {
             Setpoints setpoints = new Setpoints();
@@ -64,13 +64,13 @@ namespace Formicarium.Controller.Tests
             feed.Update(FeedTimeUtc.AddSeconds(setpoints.FeedDoseSeconds));
 
             // Still the same local day, well past the slot.
-            Assert.False(feed.Update(FeedTimeUtc.AddHours(6)));
+            Assert.That(feed.Update(FeedTimeUtc.AddHours(6)), Is.False);
 
             // Next local day, same slot.
-            Assert.True(feed.Update(FeedTimeUtc.AddDays(1)));
+            Assert.That(feed.Update(FeedTimeUtc.AddDays(1)), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void ManualDoseIsRateLimited()
         {
             Setpoints setpoints = new Setpoints();
@@ -78,23 +78,23 @@ namespace Formicarium.Controller.Tests
 
             DateTime t = FeedTimeUtc.AddHours(3);
 
-            Assert.True(feed.RequestManualDose(t));
+            Assert.That(feed.RequestManualDose(t), Is.True);
             feed.Update(t.AddSeconds(setpoints.FeedDoseSeconds));
 
             // The dish is small; an over-eager button is a drowned outworld.
-            Assert.False(feed.RequestManualDose(t.AddMinutes(5)));
+            Assert.That(feed.RequestManualDose(t.AddMinutes(5)), Is.False);
 
-            Assert.True(feed.RequestManualDose(t.AddSeconds(setpoints.FeedManualCooldownSeconds + 1)));
+            Assert.That(feed.RequestManualDose(t.AddSeconds(setpoints.FeedManualCooldownSeconds + 1)), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void ManualDoseIsRefusedWhileAlreadyDosing()
         {
             FeedScheduler feed = new FeedScheduler(new Setpoints());
 
             DateTime t = FeedTimeUtc.AddHours(3);
-            Assert.True(feed.RequestManualDose(t));
-            Assert.False(feed.RequestManualDose(t.AddSeconds(1)));
+            Assert.That(feed.RequestManualDose(t), Is.True);
+            Assert.That(feed.RequestManualDose(t.AddSeconds(1)), Is.False);
         }
     }
 }

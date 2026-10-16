@@ -120,7 +120,7 @@ C# throughout. `firmware/Formicarium.Controller` runs .NET nanoFramework on an E
 as one of its pages.
 
 The control logic lives in a hardware-free `Core/` folder that is compiled into the firmware, into a
-desktop xUnit project, and into the dashboard's colony simulator — the same source in all three, so
+desktop NUnit project, and into the dashboard's colony simulator — the same source in all three, so
 the simulator drives the genuine control loop rather than a second implementation of it. See
 [`README.md`](README.md) for why that matters and what it constrains.
 

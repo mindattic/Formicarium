@@ -2,7 +2,7 @@ using System;
 using Formicarium.Core.Config;
 using Formicarium.Core.Control;
 using Formicarium.Core.State;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -24,7 +24,7 @@ namespace Formicarium.Controller.Tests
             return new ControlLoop(sensors, actuators, setpoints, T0, TestDefaults.RiserCount);
         }
 
-        [Fact]
+        [Test]
         public void BootStateIsEverythingOff()
         {
             FakeSensors sensors;
@@ -34,14 +34,14 @@ namespace Formicarium.Controller.Tests
 
             // Before a single tick. The MOSFET gate pulldowns hold the hardware off through
             // reset; this asserts the firmware agrees rather than leaving outputs undefined.
-            Assert.Equal(1, actuators.AllOffCalls);
-            Assert.False(actuators.HeaterOn);
-            Assert.False(actuators.RefillPumpOn);
-            Assert.False(actuators.FeedPumpOn);
-            Assert.False(actuators.FanOn);
+            Assert.That(actuators.AllOffCalls, Is.EqualTo(1));
+            Assert.That(actuators.HeaterOn, Is.False);
+            Assert.That(actuators.RefillPumpOn, Is.False);
+            Assert.That(actuators.FeedPumpOn, Is.False);
+            Assert.That(actuators.FanOn, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void NothingEnergisesUntilSomeSensorHasWorkedOnce()
         {
             FakeSensors sensors;
@@ -54,15 +54,15 @@ namespace Formicarium.Controller.Tests
 
             DeviceState state = loop.Tick(T0.AddSeconds(1));
 
-            Assert.False(state.HeaterOn);
-            Assert.False(actuators.HeaterOn);
+            Assert.That(state.HeaterOn, Is.False);
+            Assert.That(actuators.HeaterOn, Is.False);
 
             // A controller that has never successfully read anything has no business switching
             // a heater on inside a sealed box.
-            Assert.True(SafetyWatchdog.Has((Faults)state.Faults, Faults.NoValidReadingSinceBoot));
+            Assert.That(SafetyWatchdog.Has((Faults)state.Faults, Faults.NoValidReadingSinceBoot), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void HeatsAColdNest()
         {
             FakeSensors sensors;
@@ -74,11 +74,11 @@ namespace Formicarium.Controller.Tests
 
             DeviceState state = loop.Tick(T0.AddSeconds(1));
 
-            Assert.True(state.HeaterOn);
-            Assert.True(actuators.HeaterOn);
+            Assert.That(state.HeaterOn, Is.True);
+            Assert.That(actuators.HeaterOn, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void ASecondProbeSeeingOverTemperatureKillsTheHeater()
         {
             FakeSensors sensors;
@@ -94,12 +94,12 @@ namespace Formicarium.Controller.Tests
 
             DeviceState state = loop.Tick(T0.AddSeconds(1));
 
-            Assert.False(state.HeaterOn);
-            Assert.False(actuators.HeaterOn);
-            Assert.True(SafetyWatchdog.Has((Faults)state.Faults, Faults.NestOverTemp));
+            Assert.That(state.HeaterOn, Is.False);
+            Assert.That(actuators.HeaterOn, Is.False);
+            Assert.That(SafetyWatchdog.Has((Faults)state.Faults, Faults.NestOverTemp), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void OneFailedSensorDoesNotShutDownUnrelatedSubsystems()
         {
             FakeSensors sensors;
@@ -117,13 +117,13 @@ namespace Formicarium.Controller.Tests
             // afford to be. The soil probe is now a monitoring input, not a control input, so
             // losing it costs the fault flag and nothing else: the colony is still warm, and
             // still being hydrated from the reservoir.
-            Assert.True(state.HeaterOn);
-            Assert.True(state.RefillPumpOn);
-            Assert.True(SafetyWatchdog.Has((Faults)state.Faults, Faults.SoilMoistureUnusable));
-            Assert.False(SafetyWatchdog.Has((Faults)state.Faults, Faults.NestBottomTempUnusable));
+            Assert.That(state.HeaterOn, Is.True);
+            Assert.That(state.RefillPumpOn, Is.True);
+            Assert.That(SafetyWatchdog.Has((Faults)state.Faults, Faults.SoilMoistureUnusable), Is.True);
+            Assert.That(SafetyWatchdog.Has((Faults)state.Faults, Faults.NestBottomTempUnusable), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void ServiceModeStopsEverythingWithoutClosingAnything()
         {
             FakeSensors sensors;
@@ -133,22 +133,22 @@ namespace Formicarium.Controller.Tests
 
             sensors.NestBottomTempC = 20.0;
             loop.Tick(T0.AddSeconds(1));
-            Assert.True(actuators.HeaterOn);
+            Assert.That(actuators.HeaterOn, Is.True);
 
             loop.ServiceMode = true;
             DeviceState state = loop.Tick(T0.AddSeconds(2));
 
-            Assert.True(state.ServiceMode);
-            Assert.False(actuators.HeaterOn);
-            Assert.False(actuators.RefillPumpOn);
-            Assert.False(actuators.FanOn);
+            Assert.That(state.ServiceMode, Is.True);
+            Assert.That(actuators.HeaterOn, Is.False);
+            Assert.That(actuators.RefillPumpOn, Is.False);
+            Assert.That(actuators.FanOn, Is.False);
 
             // Nothing was closed. There is no gate to jam: the risers stay open and physical
             // containment during service is the manual plug caps.
-            Assert.False(loop.RequestManualFeed(T0.AddSeconds(3)));
+            Assert.That(loop.RequestManualFeed(T0.AddSeconds(3)), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void RecoversWhenServiceModeIsReleased()
         {
             FakeSensors sensors;
@@ -167,10 +167,10 @@ namespace Formicarium.Controller.Tests
             // Past the minimum-off dwell that the forced stop started.
             DeviceState state = loop.Tick(T0.AddSeconds(200));
 
-            Assert.True(state.HeaterOn);
+            Assert.That(state.HeaterOn, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void StatePublishesInvalidReadingsAsNotOkRatherThanAsPlausibleNumbers()
         {
             FakeSensors sensors;
@@ -185,12 +185,12 @@ namespace Formicarium.Controller.Tests
 
             // A consumer that ignores the Ok flag gets a zero, which is visibly wrong, rather
             // than a stale number, which is not.
-            Assert.False(state.SoilMoistureOk);
-            Assert.Equal(0.0, state.SoilMoisturePct, 6);
-            Assert.True(state.NestBottomTempOk);
+            Assert.That(state.SoilMoistureOk, Is.False);
+            Assert.That(state.SoilMoisturePct, Is.EqualTo(0.0).Within(5e-7));
+            Assert.That(state.NestBottomTempOk, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void HeaterDoesNotChatterAcrossManyTicksAtTheSetpoint()
         {
             FakeSensors sensors;
@@ -209,12 +209,10 @@ namespace Formicarium.Controller.Tests
                 loop.Tick(T0.AddSeconds(second));
             }
 
-            Assert.True(
-                actuators.HeaterTransitions <= 6,
-                "heater switched " + actuators.HeaterTransitions + " times in 10 minutes at the setpoint");
+            Assert.That(actuators.HeaterTransitions <= 6, Is.True, "heater switched " + actuators.HeaterTransitions + " times in 10 minutes at the setpoint");
         }
 
-        [Fact]
+        [Test]
         public void NestExhaustRunsOnNestHumidityNotOutworldHumidity()
         {
             FakeSensors sensors;
@@ -230,11 +228,11 @@ namespace Formicarium.Controller.Tests
 
             DeviceState state = loop.Tick(T0.AddSeconds(1));
 
-            Assert.True(state.NestFanOn);
-            Assert.False(state.FanOn);
+            Assert.That(state.NestFanOn, Is.True);
+            Assert.That(state.FanOn, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void NestExhaustLeavesAHumidNestAloneBelowTheMouldThreshold()
         {
             FakeSensors sensors;
@@ -248,10 +246,10 @@ namespace Formicarium.Controller.Tests
 
             DeviceState state = loop.Tick(T0.AddSeconds(1));
 
-            Assert.False(state.NestFanOn);
+            Assert.That(state.NestFanOn, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void NestExhaustStopsWhenItsOwnSensorFails()
         {
             FakeSensors sensors;
@@ -261,18 +259,18 @@ namespace Formicarium.Controller.Tests
 
             sensors.NestHumidityPct = 95.0;
             loop.Tick(T0.AddSeconds(1));
-            Assert.True(actuators.NestFanOn);
+            Assert.That(actuators.NestFanOn, Is.True);
 
             // Losing SHT31-B means mould risk becomes unmonitored, which is bad - but venting
             // blind would dry the nest indefinitely, which is worse. Off is the right failure.
             sensors.AllSensorsFailed = true;
             DeviceState state = loop.Tick(T0.AddSeconds(400));
 
-            Assert.False(state.NestFanOn);
-            Assert.True(SafetyWatchdog.Has((Faults)state.Faults, Faults.NestHumidityUnusable));
+            Assert.That(state.NestFanOn, Is.False);
+            Assert.That(SafetyWatchdog.Has((Faults)state.Faults, Faults.NestHumidityUnusable), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void TrafficAndLightingAppearInPublishedState()
         {
             FakeSensors sensors;
@@ -287,14 +285,14 @@ namespace Formicarium.Controller.Tests
 
             DeviceState state = loop.Tick(T0.AddSeconds(1));
 
-            Assert.Equal(3, state.RiserRatesPerMinute.Length);
-            Assert.Equal(1200, state.RiserCounts[0]);
-            Assert.Equal(3, state.RiserChannel.Length);
+            Assert.That(state.RiserRatesPerMinute.Length, Is.EqualTo(3));
+            Assert.That(state.RiserCounts[0], Is.EqualTo(1200));
+            Assert.That(state.RiserChannel.Length, Is.EqualTo(3));
 
             // Stimulus is published alongside response, because a traffic log without the light
             // level that produced it cannot be analysed afterwards.
-            Assert.True(state.RiserBrightness[0] > state.RiserBrightness[1]);
-            Assert.Equal(0.0, state.RiserBrightness[2], 6);
+            Assert.That(state.RiserBrightness[0] > state.RiserBrightness[1], Is.True);
+            Assert.That(state.RiserBrightness[2], Is.EqualTo(0.0).Within(5e-7));
         }
     }
 }

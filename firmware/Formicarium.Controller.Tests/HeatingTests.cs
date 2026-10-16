@@ -1,7 +1,7 @@
 using System;
 using Formicarium.Core.Control;
 using Formicarium.Core.Sensing;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -21,15 +21,15 @@ namespace Formicarium.Controller.Tests
                 HysteresisMode.ActivateBelow, 26.1, 28.3, -5.0, 60.0, 60, 60, 30);
         }
 
-        [Fact]
+        [Test]
         public void TurnsOnBelowTheBand()
         {
             HysteresisController heater = Heater();
 
-            Assert.True(heater.Update(Reading.Good(24.0, T0), T0));
+            Assert.That(heater.Update(Reading.Good(24.0, T0), T0), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void TurnsOffAboveTheBandOnceDwellHasElapsed()
         {
             HysteresisController heater = Heater();
@@ -37,10 +37,10 @@ namespace Formicarium.Controller.Tests
 
             DateTime later = T0.AddSeconds(61);
 
-            Assert.False(heater.Update(Reading.Good(29.0, later), later));
+            Assert.That(heater.Update(Reading.Good(29.0, later), later), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void HoldsStateInsideTheDeadband()
         {
             HysteresisController heater = Heater();
@@ -50,10 +50,10 @@ namespace Formicarium.Controller.Tests
 
             // 27.0 is between the two thresholds. Neither rule fires, so whatever the heater
             // was doing continues. This is the whole point of a deadband.
-            Assert.True(heater.Update(Reading.Good(27.0, later), later));
+            Assert.That(heater.Update(Reading.Good(27.0, later), later), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void DwellBlocksChatterAtTheSetpointEdge()
         {
             HysteresisController heater = Heater();
@@ -61,13 +61,13 @@ namespace Formicarium.Controller.Tests
 
             // Sensor noise flicks the reading across the upper threshold almost immediately.
             DateTime tooSoon = T0.AddSeconds(10);
-            Assert.True(heater.Update(Reading.Good(29.0, tooSoon), tooSoon));
+            Assert.That(heater.Update(Reading.Good(29.0, tooSoon), tooSoon), Is.True);
 
             DateTime allowed = T0.AddSeconds(61);
-            Assert.False(heater.Update(Reading.Good(29.0, allowed), allowed));
+            Assert.That(heater.Update(Reading.Good(29.0, allowed), allowed), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void FailedReadingTurnsHeaterOffImmediatelyAndIgnoresDwell()
         {
             HysteresisController heater = Heater();
@@ -78,10 +78,10 @@ namespace Formicarium.Controller.Tests
             // enough to turn off" is precisely the bug this ordering exists to prevent.
             DateTime justAfter = T0.AddSeconds(1);
 
-            Assert.False(heater.Update(Reading.Bad(justAfter), justAfter));
+            Assert.That(heater.Update(Reading.Bad(justAfter), justAfter), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void NeverHoldsTheLastGoodValueWhenTheSensorStops()
         {
             HysteresisController heater = Heater();
@@ -93,10 +93,10 @@ namespace Formicarium.Controller.Tests
             Reading stale = Reading.Good(24.0, T0);
             DateTime now = T0.AddSeconds(40);
 
-            Assert.False(heater.Update(stale, now));
+            Assert.That(heater.Update(stale, now), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void RejectsTheDs18B20PowerOnDefaultAsImplausible()
         {
             HysteresisController heater = Heater();
@@ -108,23 +108,23 @@ namespace Formicarium.Controller.Tests
             // plausibility bound does.
             DateTime later = T0.AddSeconds(61);
 
-            Assert.False(heater.Update(Reading.Good(85.0, later), later));
+            Assert.That(heater.Update(Reading.Good(85.0, later), later), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void FanModeIsTheSameControlReversed()
         {
             // On above 80 %RH, off below 70 %RH.
             HysteresisController fan = new HysteresisController(
                 HysteresisMode.ActivateAbove, 80.0, 70.0, 0.0, 100.0, 30, 30, 30);
 
-            Assert.True(fan.Update(Reading.Good(85.0, T0), T0));
+            Assert.That(fan.Update(Reading.Good(85.0, T0), T0), Is.True);
 
             DateTime hold = T0.AddSeconds(31);
-            Assert.True(fan.Update(Reading.Good(75.0, hold), hold)); // deadband
+            Assert.That(fan.Update(Reading.Good(75.0, hold), hold), Is.True); // deadband
 
             DateTime off = T0.AddSeconds(62);
-            Assert.False(fan.Update(Reading.Good(65.0, off), off));
+            Assert.That(fan.Update(Reading.Good(65.0, off), off), Is.False);
         }
     }
 }

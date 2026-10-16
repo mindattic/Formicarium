@@ -1,6 +1,6 @@
 using System;
 using Formicarium.Core.Sensing;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -8,7 +8,7 @@ namespace Formicarium.Controller.Tests
     {
         private static readonly DateTime T0 = TestDefaults.StartUtc;
 
-        [Fact]
+        [Test]
         public void DebounceCollapsesTheBurstOneAntProduces()
         {
             RiserTrafficCounter counter = new RiserTrafficCounter(60, 100);
@@ -16,29 +16,29 @@ namespace Formicarium.Controller.Tests
             // A single ant crossing a 3 mm beam does not produce one clean edge. The body
             // occludes for tens of milliseconds and the legs and antennae chatter the receiver
             // either side of it, so the raw signal is a burst.
-            Assert.True(counter.RecordBreak(T0));
-            Assert.False(counter.RecordBreak(T0.AddMilliseconds(15)));
-            Assert.False(counter.RecordBreak(T0.AddMilliseconds(40)));
-            Assert.False(counter.RecordBreak(T0.AddMilliseconds(80)));
+            Assert.That(counter.RecordBreak(T0), Is.True);
+            Assert.That(counter.RecordBreak(T0.AddMilliseconds(15)), Is.False);
+            Assert.That(counter.RecordBreak(T0.AddMilliseconds(40)), Is.False);
+            Assert.That(counter.RecordBreak(T0.AddMilliseconds(80)), Is.False);
 
-            Assert.Equal(1, counter.CumulativeCount);
-            Assert.Equal(3, counter.DebouncedCount);
+            Assert.That(counter.CumulativeCount, Is.EqualTo(1));
+            Assert.That(counter.DebouncedCount, Is.EqualTo(3));
         }
 
-        [Fact]
+        [Test]
         public void SeparateAntsAreCountedSeparately()
         {
             RiserTrafficCounter counter = new RiserTrafficCounter(60, 100);
 
-            Assert.True(counter.RecordBreak(T0));
-            Assert.True(counter.RecordBreak(T0.AddMilliseconds(150)));
-            Assert.True(counter.RecordBreak(T0.AddMilliseconds(400)));
+            Assert.That(counter.RecordBreak(T0), Is.True);
+            Assert.That(counter.RecordBreak(T0.AddMilliseconds(150)), Is.True);
+            Assert.That(counter.RecordBreak(T0.AddMilliseconds(400)), Is.True);
 
-            Assert.Equal(3, counter.CumulativeCount);
-            Assert.Equal(0, counter.DebouncedCount);
+            Assert.That(counter.CumulativeCount, Is.EqualTo(3));
+            Assert.That(counter.DebouncedCount, Is.EqualTo(0));
         }
 
-        [Fact]
+        [Test]
         public void RateReflectsTheWindow()
         {
             RiserTrafficCounter counter = new RiserTrafficCounter(60, 100);
@@ -51,10 +51,10 @@ namespace Formicarium.Controller.Tests
             counter.Tick(T0.AddSeconds(6));
 
             // Six breaks inside a 60 second window is six per minute.
-            Assert.Equal(6.0, counter.RatePerMinute, 6);
+            Assert.That(counter.RatePerMinute, Is.EqualTo(6.0).Within(5e-7));
         }
 
-        [Fact]
+        [Test]
         public void RateDecaysToZeroWhenTheColonySleeps()
         {
             RiserTrafficCounter counter = new RiserTrafficCounter(60, 100);
@@ -69,11 +69,11 @@ namespace Formicarium.Controller.Tests
             // number that had quietly stopped meaning anything.
             counter.Tick(T0.AddSeconds(120));
 
-            Assert.Equal(0.0, counter.RatePerMinute, 6);
-            Assert.Equal(6, counter.CumulativeCount);
+            Assert.That(counter.RatePerMinute, Is.EqualTo(0.0).Within(5e-7));
+            Assert.That(counter.CumulativeCount, Is.EqualTo(6));
         }
 
-        [Fact]
+        [Test]
         public void CumulativeCountIsMonotonicAcrossAWindowRollover()
         {
             RiserTrafficCounter counter = new RiserTrafficCounter(10, 50);
@@ -83,16 +83,16 @@ namespace Formicarium.Controller.Tests
             for (int second = 0; second < 60; second++)
             {
                 counter.RecordBreak(T0.AddSeconds(second));
-                Assert.True(counter.CumulativeCount >= previous);
+                Assert.That(counter.CumulativeCount >= previous, Is.True);
                 previous = counter.CumulativeCount;
             }
 
             // The dashboard differences this into a log, so it must never go backwards even as
             // the rolling window recycles its buckets underneath it.
-            Assert.Equal(60, counter.CumulativeCount);
+            Assert.That(counter.CumulativeCount, Is.EqualTo(60));
         }
 
-        [Fact]
+        [Test]
         public void PartialWindowExpiryDropsOnlyTheOldEntries()
         {
             RiserTrafficCounter counter = new RiserTrafficCounter(10, 50);
@@ -105,10 +105,10 @@ namespace Formicarium.Controller.Tests
             // At t+12 the first two have aged out of a 10 second window; the last two have not.
             counter.Tick(T0.AddSeconds(12));
 
-            Assert.Equal(2.0 * 60.0 / 10.0, counter.RatePerMinute, 6);
+            Assert.That(counter.RatePerMinute, Is.EqualTo(2.0 * 60.0 / 10.0).Within(5e-7));
         }
 
-        [Fact]
+        [Test]
         public void MemoryDoesNotGrowWithTraffic()
         {
             // Bounded by construction: one counter per second of window, not one entry per ant.
@@ -121,8 +121,8 @@ namespace Formicarium.Controller.Tests
                 counter.RecordBreak(T0.AddMilliseconds(i * 10));
             }
 
-            Assert.Equal(50000, counter.CumulativeCount);
-            Assert.True(counter.RatePerMinute > 0);
+            Assert.That(counter.CumulativeCount, Is.EqualTo(50000));
+            Assert.That(counter.RatePerMinute > 0, Is.True);
         }
     }
 }

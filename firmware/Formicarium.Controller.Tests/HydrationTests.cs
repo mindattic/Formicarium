@@ -2,7 +2,7 @@ using System;
 using Formicarium.Core.Config;
 using Formicarium.Core.Control;
 using Formicarium.Core.Sensing;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -20,26 +20,26 @@ namespace Formicarium.Controller.Tests
 
         private static Reading Soil(double percent, DateTime at) => Reading.Good(percent, at);
 
-        [Fact]
+        [Test]
         public void RefillsWhenTheReservoirIsLow()
         {
             HydrationController hydration = new HydrationController(new Setpoints());
 
-            Assert.True(hydration.Update(Low, Soil(50.0, T0), T0));
-            Assert.True(hydration.IsRefilling);
-            Assert.True(hydration.RefillWanted);
+            Assert.That(hydration.Update(Low, Soil(50.0, T0), T0), Is.True);
+            Assert.That(hydration.IsRefilling, Is.True);
+            Assert.That(hydration.RefillWanted, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void DoesNothingWhenTheReservoirIsFull()
         {
             HydrationController hydration = new HydrationController(new Setpoints());
 
-            Assert.False(hydration.Update(Full, Soil(50.0, T0), T0));
-            Assert.False(hydration.RefillWanted);
+            Assert.That(hydration.Update(Full, Soil(50.0, T0), T0), Is.False);
+            Assert.That(hydration.RefillWanted, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void StopsAsSoonAsTheReservoirReadsFull()
         {
             HydrationController hydration = new HydrationController(new Setpoints());
@@ -47,11 +47,11 @@ namespace Formicarium.Controller.Tests
 
             DateTime t = T0.AddSeconds(10);
 
-            Assert.False(hydration.Update(Full, Soil(50.0, t), t));
-            Assert.False(hydration.HitMaxRuntime);
+            Assert.That(hydration.Update(Full, Soil(50.0, t), t), Is.False);
+            Assert.That(hydration.HitMaxRuntime, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void HydrationSurvivesADeadSoilProbe()
         {
             HydrationController hydration = new HydrationController(new Setpoints());
@@ -62,11 +62,11 @@ namespace Formicarium.Controller.Tests
             //
             // Under the previous design a failed probe stopped watering entirely, and the colony
             // would have dried out while every actuator sat correctly in its fail-safe state.
-            Assert.True(hydration.Update(Low, Reading.Bad(T0), T0));
-            Assert.True(hydration.IsRefilling);
+            Assert.That(hydration.Update(Low, Reading.Bad(T0), T0), Is.True);
+            Assert.That(hydration.IsRefilling, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void AStuckFloatSwitchCannotRunThePumpForever()
         {
             Setpoints setpoints = new Setpoints();
@@ -74,7 +74,7 @@ namespace Formicarium.Controller.Tests
 
             DateTime t = T0;
             bool running = hydration.Update(Low, Soil(50.0, t), t);
-            Assert.True(running);
+            Assert.That(running, Is.True);
 
             for (int second = 1; second <= setpoints.RefillMaxRunSeconds; second++)
             {
@@ -82,11 +82,11 @@ namespace Formicarium.Controller.Tests
                 running = hydration.Update(Low, Soil(50.0, t), t);
             }
 
-            Assert.False(running);
-            Assert.True(hydration.HitMaxRuntime);
+            Assert.That(running, Is.False);
+            Assert.That(hydration.HitMaxRuntime, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void RepeatedTimeoutsRaiseTheSupplyEmptyAlarm()
         {
             Setpoints setpoints = new Setpoints();
@@ -109,10 +109,10 @@ namespace Formicarium.Controller.Tests
 
             // Three timeouts in a row is not an air lock. The supply container is empty, which is
             // the one piece of routine maintenance this design still needs from a human.
-            Assert.True(hydration.WaterSupplyEmpty);
+            Assert.That(hydration.WaterSupplyEmpty, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void ASingleTimeoutDoesNotCryWolfAboutTheSupply()
         {
             Setpoints setpoints = new Setpoints();
@@ -127,11 +127,11 @@ namespace Formicarium.Controller.Tests
                 hydration.Update(Low, Soil(50.0, t), t);
             }
 
-            Assert.True(hydration.HitMaxRuntime);
-            Assert.False(hydration.WaterSupplyEmpty);
+            Assert.That(hydration.HitMaxRuntime, Is.True);
+            Assert.That(hydration.WaterSupplyEmpty, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void ASuccessfulRefillClearsTheSupplyAlarm()
         {
             Setpoints setpoints = new Setpoints();
@@ -152,7 +152,7 @@ namespace Formicarium.Controller.Tests
                 t = t.AddSeconds(setpoints.RefillCooldownSeconds + 1);
             }
 
-            Assert.True(hydration.WaterSupplyEmpty);
+            Assert.That(hydration.WaterSupplyEmpty, Is.True);
 
             // Someone refilled the jug. The alarm must clear on its own once water flows again,
             // rather than needing a button pressed, or it will be ignored next time.
@@ -160,10 +160,10 @@ namespace Formicarium.Controller.Tests
             t = t.AddSeconds(5);
             hydration.Update(Full, Soil(50.0, t), t);
 
-            Assert.False(hydration.WaterSupplyEmpty);
+            Assert.That(hydration.WaterSupplyEmpty, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void CooldownSpacesOutRefillAttempts()
         {
             Setpoints setpoints = new Setpoints();
@@ -175,13 +175,13 @@ namespace Formicarium.Controller.Tests
             hydration.Update(Full, Soil(50.0, filled), filled);
 
             DateTime tooSoon = filled.AddSeconds(30);
-            Assert.False(hydration.Update(Low, Soil(50.0, tooSoon), tooSoon));
+            Assert.That(hydration.Update(Low, Soil(50.0, tooSoon), tooSoon), Is.False);
 
             DateTime allowed = filled.AddSeconds(setpoints.RefillCooldownSeconds + 1);
-            Assert.True(hydration.Update(Low, Soil(50.0, allowed), allowed));
+            Assert.That(hydration.Update(Low, Soil(50.0, allowed), allowed), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void AnOverWetNestHoldsOffRefillsAndRaisesAFault()
         {
             HydrationController hydration = new HydrationController(new Setpoints());
@@ -189,11 +189,11 @@ namespace Formicarium.Controller.Tests
             // Wicking is running away, or the probe is wrong. Topping up the reservoir would still
             // be harmless — that is what sizing it buys — but there is no reason to, and holding
             // off makes the fault easier to read.
-            Assert.False(hydration.Update(Low, Soil(95.0, T0), T0));
-            Assert.True(hydration.SubstrateOverWet);
+            Assert.That(hydration.Update(Low, Soil(95.0, T0), T0), Is.False);
+            Assert.That(hydration.SubstrateOverWet, Is.True);
         }
 
-        [Fact]
+        [Test]
         public void ADryNestWithAFullReservoirIsReportedAsAWickingFailure()
         {
             HydrationController hydration = new HydrationController(new Setpoints());
@@ -202,11 +202,11 @@ namespace Formicarium.Controller.Tests
             // not reaching the core. It is an alert, not a control input.
             hydration.Update(Full, Soil(5.0, T0), T0);
 
-            Assert.True(hydration.SubstrateDry);
-            Assert.False(hydration.IsRefilling);
+            Assert.That(hydration.SubstrateDry, Is.True);
+            Assert.That(hydration.IsRefilling, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void ImplausibleMoistureRaisesNeitherWetNorDryFault()
         {
             HydrationController hydration = new HydrationController(new Setpoints());
@@ -215,11 +215,11 @@ namespace Formicarium.Controller.Tests
             // be interpreted as either extreme.
             hydration.Update(Full, Reading.Good(-40.0, T0), T0);
 
-            Assert.False(hydration.SubstrateOverWet);
-            Assert.False(hydration.SubstrateDry);
+            Assert.That(hydration.SubstrateOverWet, Is.False);
+            Assert.That(hydration.SubstrateDry, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void AcknowledgingClearsTheLatchedFaults()
         {
             Setpoints setpoints = new Setpoints();
@@ -234,12 +234,12 @@ namespace Formicarium.Controller.Tests
                 hydration.Update(Low, Soil(50.0, t), t);
             }
 
-            Assert.True(hydration.HitMaxRuntime);
+            Assert.That(hydration.HitMaxRuntime, Is.True);
 
             hydration.Acknowledge();
 
-            Assert.False(hydration.HitMaxRuntime);
-            Assert.False(hydration.WaterSupplyEmpty);
+            Assert.That(hydration.HitMaxRuntime, Is.False);
+            Assert.That(hydration.WaterSupplyEmpty, Is.False);
         }
     }
 }

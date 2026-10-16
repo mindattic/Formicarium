@@ -1,6 +1,6 @@
 using System;
 using Formicarium.Core.Sensing;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -12,7 +12,7 @@ namespace Formicarium.Controller.Tests
     /// </summary>
     public class LocalTimeTests
     {
-        [Fact]
+        [Test]
         public void FromUtc_DefaultOffsetRollsAnEarlyMorningUtcTimestampBackToThePreviousLocalDay()
         {
             // -300 minutes is the configured default (US Eastern, standard time).
@@ -20,38 +20,38 @@ namespace Formicarium.Controller.Tests
 
             DateTime local = LocalTime.FromUtc(utc, -300);
 
-            Assert.Equal(new DateTime(2026, 6, 1, 22, 0, 0), local);
+            Assert.That(local, Is.EqualTo(new DateTime(2026, 6, 1, 22, 0, 0)));
         }
 
-        [Fact]
+        [Test]
         public void FromUtc_PositiveOffsetCanAdvanceIntoTheNextLocalDay()
         {
             DateTime utc = new DateTime(2026, 6, 1, 23, 30, 0);
 
             DateTime local = LocalTime.FromUtc(utc, 60);
 
-            Assert.Equal(new DateTime(2026, 6, 2, 0, 30, 0), local);
+            Assert.That(local, Is.EqualTo(new DateTime(2026, 6, 2, 0, 30, 0)));
         }
 
-        [Fact]
+        [Test]
         public void FromUtc_ZeroOffsetIsIdentity()
         {
             DateTime utc = new DateTime(2026, 6, 1, 16, 0, 0);
 
             DateTime local = LocalTime.FromUtc(utc, 0);
 
-            Assert.Equal(utc, local);
+            Assert.That(local, Is.EqualTo(utc));
         }
 
-        [Fact]
+        [Test]
         public void DayNumberOfTheEpochIsZero()
         {
             DateTime epoch = new DateTime(1970, 1, 1);
 
-            Assert.Equal(0, LocalTime.DayNumber(epoch, 0));
+            Assert.That(LocalTime.DayNumber(epoch, 0), Is.EqualTo(0));
         }
 
-        [Fact]
+        [Test]
         public void DayNumber_DefaultOffsetRollsAnEarlyMorningUtcTimestampBackToThePreviousLocalDay()
         {
             // 03:00 UTC on the 2nd is still the 1st at the default -300 offset (22:00 local).
@@ -60,10 +60,10 @@ namespace Formicarium.Controller.Tests
             int utcDayNumber = LocalTime.DayNumber(utc, 0);
             int localDayNumber = LocalTime.DayNumber(utc, -300);
 
-            Assert.Equal(utcDayNumber - 1, localDayNumber);
+            Assert.That(localDayNumber, Is.EqualTo(utcDayNumber - 1));
         }
 
-        [Fact]
+        [Test]
         public void DayNumber_PositiveOffsetCanAdvanceToTheNextLocalDay()
         {
             DateTime utc = new DateTime(2026, 6, 1, 23, 30, 0);
@@ -71,10 +71,10 @@ namespace Formicarium.Controller.Tests
             int utcDayNumber = LocalTime.DayNumber(utc, 0);
             int localDayNumber = LocalTime.DayNumber(utc, 60);
 
-            Assert.Equal(utcDayNumber + 1, localDayNumber);
+            Assert.That(localDayNumber, Is.EqualTo(utcDayNumber + 1));
         }
 
-        [Fact]
+        [Test]
         public void DayNumber_IsStableAcrossTheWholeLocalDayRegardlessOfTimeOfDay()
         {
             DateTime earlyLocal = new DateTime(2026, 6, 2, 3, 0, 1);  // just after local midnight
@@ -85,7 +85,7 @@ namespace Formicarium.Controller.Tests
             DateTime earlyUtc = earlyLocal.AddMinutes(300);
             DateTime lateUtc = lateLocal.AddMinutes(300);
 
-            Assert.Equal(LocalTime.DayNumber(earlyUtc, -300), LocalTime.DayNumber(lateUtc, -300));
+            Assert.That(LocalTime.DayNumber(lateUtc, -300), Is.EqualTo(LocalTime.DayNumber(earlyUtc, -300)));
         }
     }
 }

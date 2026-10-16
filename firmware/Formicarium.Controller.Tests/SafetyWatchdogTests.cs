@@ -2,7 +2,7 @@ using System;
 using Formicarium.Core.Config;
 using Formicarium.Core.Control;
 using Formicarium.Core.Sensing;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -52,10 +52,10 @@ namespace Formicarium.Controller.Tests
 
             Faults faults = watchdog.Evaluate(snapshot, nowUtc, hydration, hasSeenAnyValidReading: true);
 
-            Assert.Equal(expected, faults & AllUnusableBits);
+            Assert.That(faults & AllUnusableBits, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void EverythingHealthyRaisesNoFaults()
         {
             Setpoints setpoints = new Setpoints();
@@ -64,10 +64,10 @@ namespace Formicarium.Controller.Tests
 
             Faults faults = watchdog.Evaluate(HealthySnapshot(T0), T0, hydration, hasSeenAnyValidReading: true);
 
-            Assert.Equal(Faults.None, faults);
+            Assert.That(faults, Is.EqualTo(Faults.None));
         }
 
-        [Fact]
+        [Test]
         public void ABadReadingSetsOnlyThatSensorsUnusableBit()
         {
             Setpoints setpoints = new Setpoints();
@@ -88,7 +88,7 @@ namespace Formicarium.Controller.Tests
                 s => s.SoilMoisturePct = Reading.Bad(T0), Faults.SoilMoistureUnusable);
         }
 
-        [Fact]
+        [Test]
         public void AStaleReadingSetsOnlyThatSensorsUnusableBit()
         {
             Setpoints setpoints = new Setpoints();
@@ -113,7 +113,7 @@ namespace Formicarium.Controller.Tests
                 s => s.SoilMoisturePct = Reading.Good(50.0, stale), Faults.SoilMoistureUnusable);
         }
 
-        [Fact]
+        [Test]
         public void AnOutOfPlausibleRangeReadingSetsOnlyThatSensorsUnusableBit()
         {
             Setpoints setpoints = new Setpoints();
@@ -137,7 +137,7 @@ namespace Formicarium.Controller.Tests
                 s => s.SoilMoisturePct = Reading.Good(200.0, T0), Faults.SoilMoistureUnusable);
         }
 
-        [Fact]
+        [Test]
         public void NestOverTempFiresWhenTheBottomProbeExceedsTheCutout()
         {
             Setpoints setpoints = new Setpoints();
@@ -149,10 +149,10 @@ namespace Formicarium.Controller.Tests
 
             Faults faults = watchdog.Evaluate(snapshot, T0, hydration, hasSeenAnyValidReading: true);
 
-            Assert.True(SafetyWatchdog.Has(faults, Faults.NestOverTemp));
+            Assert.That(SafetyWatchdog.Has(faults, Faults.NestOverTemp), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void NestOverTempFiresWhenTheTopProbeExceedsTheCutoutEvenIfTheControlProbeReadsCold()
         {
             Setpoints setpoints = new Setpoints();
@@ -165,10 +165,10 @@ namespace Formicarium.Controller.Tests
 
             Faults faults = watchdog.Evaluate(snapshot, T0, hydration, hasSeenAnyValidReading: true);
 
-            Assert.True(SafetyWatchdog.Has(faults, Faults.NestOverTemp));
+            Assert.That(SafetyWatchdog.Has(faults, Faults.NestOverTemp), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void NestOverTempDoesNotFireWhenTheOverLimitProbeIsItselfUnusable()
         {
             Setpoints setpoints = new Setpoints();
@@ -184,11 +184,11 @@ namespace Formicarium.Controller.Tests
 
             Faults faults = watchdog.Evaluate(snapshot, T0, hydration, hasSeenAnyValidReading: true);
 
-            Assert.True(SafetyWatchdog.Has(faults, Faults.NestBottomTempUnusable));
-            Assert.False(SafetyWatchdog.Has(faults, Faults.NestOverTemp));
+            Assert.That(SafetyWatchdog.Has(faults, Faults.NestBottomTempUnusable), Is.True);
+            Assert.That(SafetyWatchdog.Has(faults, Faults.NestOverTemp), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void RefillCutoffMirrorsHydrationHitMaxRuntime()
         {
             Setpoints setpoints = new Setpoints();
@@ -204,14 +204,14 @@ namespace Formicarium.Controller.Tests
                 hydration.Update(false, Reading.Good(50.0, t), t);
             }
 
-            Assert.True(hydration.HitMaxRuntime);
+            Assert.That(hydration.HitMaxRuntime, Is.True);
 
             Faults faults = watchdog.Evaluate(HealthySnapshot(t), t, hydration, hasSeenAnyValidReading: true);
 
-            Assert.True(SafetyWatchdog.Has(faults, Faults.RefillCutoff));
+            Assert.That(SafetyWatchdog.Has(faults, Faults.RefillCutoff), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void WaterSupplyEmptyMirrorsHydrationController()
         {
             Setpoints setpoints = new Setpoints();
@@ -233,14 +233,14 @@ namespace Formicarium.Controller.Tests
                 t = t.AddSeconds(setpoints.RefillCooldownSeconds + 1);
             }
 
-            Assert.True(hydration.WaterSupplyEmpty);
+            Assert.That(hydration.WaterSupplyEmpty, Is.True);
 
             Faults faults = watchdog.Evaluate(HealthySnapshot(t), t, hydration, hasSeenAnyValidReading: true);
 
-            Assert.True(SafetyWatchdog.Has(faults, Faults.WaterSupplyEmpty));
+            Assert.That(SafetyWatchdog.Has(faults, Faults.WaterSupplyEmpty), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void SubstrateOverWetMirrorsHydrationController()
         {
             Setpoints setpoints = new Setpoints();
@@ -248,14 +248,14 @@ namespace Formicarium.Controller.Tests
             HydrationController hydration = new HydrationController(setpoints);
 
             hydration.Update(false, Reading.Good(95.0, T0), T0);
-            Assert.True(hydration.SubstrateOverWet);
+            Assert.That(hydration.SubstrateOverWet, Is.True);
 
             Faults faults = watchdog.Evaluate(HealthySnapshot(T0), T0, hydration, hasSeenAnyValidReading: true);
 
-            Assert.True(SafetyWatchdog.Has(faults, Faults.SubstrateOverWet));
+            Assert.That(SafetyWatchdog.Has(faults, Faults.SubstrateOverWet), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void SubstrateDryMirrorsHydrationController()
         {
             Setpoints setpoints = new Setpoints();
@@ -263,14 +263,14 @@ namespace Formicarium.Controller.Tests
             HydrationController hydration = new HydrationController(setpoints);
 
             hydration.Update(true, Reading.Good(5.0, T0), T0);
-            Assert.True(hydration.SubstrateDry);
+            Assert.That(hydration.SubstrateDry, Is.True);
 
             Faults faults = watchdog.Evaluate(HealthySnapshot(T0), T0, hydration, hasSeenAnyValidReading: true);
 
-            Assert.True(SafetyWatchdog.Has(faults, Faults.SubstrateDry));
+            Assert.That(SafetyWatchdog.Has(faults, Faults.SubstrateDry), Is.True);
         }
 
-        [Fact]
+        [Test]
         public void NoValidReadingSinceBootFiresOnlyWhenNothingHasEverBeenSeenValid()
         {
             Setpoints setpoints = new Setpoints();
@@ -280,21 +280,21 @@ namespace Formicarium.Controller.Tests
             Faults withoutBoot = watchdog.Evaluate(HealthySnapshot(T0), T0, hydration, hasSeenAnyValidReading: false);
             Faults withBoot = watchdog.Evaluate(HealthySnapshot(T0), T0, hydration, hasSeenAnyValidReading: true);
 
-            Assert.True(SafetyWatchdog.Has(withoutBoot, Faults.NoValidReadingSinceBoot));
-            Assert.False(SafetyWatchdog.Has(withBoot, Faults.NoValidReadingSinceBoot));
+            Assert.That(SafetyWatchdog.Has(withoutBoot, Faults.NoValidReadingSinceBoot), Is.True);
+            Assert.That(SafetyWatchdog.Has(withBoot, Faults.NoValidReadingSinceBoot), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void HasTestsASingleBitWithoutBeingTrippedByOthers()
         {
             Faults faults = Faults.NestOverTemp | Faults.WaterSupplyEmpty;
 
-            Assert.True(SafetyWatchdog.Has(faults, Faults.NestOverTemp));
-            Assert.True(SafetyWatchdog.Has(faults, Faults.WaterSupplyEmpty));
-            Assert.False(SafetyWatchdog.Has(faults, Faults.SubstrateDry));
+            Assert.That(SafetyWatchdog.Has(faults, Faults.NestOverTemp), Is.True);
+            Assert.That(SafetyWatchdog.Has(faults, Faults.WaterSupplyEmpty), Is.True);
+            Assert.That(SafetyWatchdog.Has(faults, Faults.SubstrateDry), Is.False);
         }
 
-        [Fact]
+        [Test]
         public void AnyReadingValidIsFalseOnlyWhenEverySensorIsInvalid()
         {
             SensorSnapshot allBad = new SensorSnapshot(0);
@@ -305,12 +305,12 @@ namespace Formicarium.Controller.Tests
             allBad.OutworldHumidityPct = Reading.Bad(T0);
             allBad.SoilMoisturePct = Reading.Bad(T0);
 
-            Assert.False(SafetyWatchdog.AnyReadingValid(allBad));
+            Assert.That(SafetyWatchdog.AnyReadingValid(allBad), Is.False);
 
             // Only the soil probe came back; that alone is enough to leave boot-gating.
             allBad.SoilMoisturePct = Reading.Good(50.0, T0);
 
-            Assert.True(SafetyWatchdog.AnyReadingValid(allBad));
+            Assert.That(SafetyWatchdog.AnyReadingValid(allBad), Is.True);
         }
     }
 }

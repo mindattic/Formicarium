@@ -2,7 +2,7 @@ using System;
 using Formicarium.Core.Actuation;
 using Formicarium.Core.Config;
 using Formicarium.Core.Control;
-using Xunit;
+using NUnit.Framework;
 
 namespace Formicarium.Controller.Tests
 {
@@ -29,7 +29,7 @@ namespace Formicarium.Controller.Tests
             return copy;
         }
 
-        [Fact]
+        [Test]
         public void EachRiserHoldsADistinctChannel()
         {
             LightingController lighting = new LightingController(new Setpoints(), 3);
@@ -37,13 +37,13 @@ namespace Formicarium.Controller.Tests
 
             int[] channels = lighting.ChannelForRiser;
 
-            Assert.Equal(3, channels.Length);
-            Assert.NotEqual(channels[0], channels[1]);
-            Assert.NotEqual(channels[1], channels[2]);
-            Assert.NotEqual(channels[0], channels[2]);
+            Assert.That(channels.Length, Is.EqualTo(3));
+            Assert.That(channels[1], Is.Not.EqualTo(channels[0]));
+            Assert.That(channels[2], Is.Not.EqualTo(channels[1]));
+            Assert.That(channels[2], Is.Not.EqualTo(channels[0]));
         }
 
-        [Fact]
+        [Test]
         public void MappingRotatesEveryDayAndReturnsAfterThree()
         {
             LightingController lighting = new LightingController(new Setpoints(), 3);
@@ -63,8 +63,8 @@ namespace Formicarium.Controller.Tests
             // Every riser changes colour every day...
             for (int riser = 0; riser < 3; riser++)
             {
-                Assert.NotEqual(day0[riser], day1[riser]);
-                Assert.NotEqual(day1[riser], day2[riser]);
+                Assert.That(day1[riser], Is.Not.EqualTo(day0[riser]));
+                Assert.That(day2[riser], Is.Not.EqualTo(day1[riser]));
             }
 
             // ...and each riser has held all three colours exactly once over the cycle, which
@@ -77,16 +77,16 @@ namespace Formicarium.Controller.Tests
                 seen[day1[riser]] = true;
                 seen[day2[riser]] = true;
 
-                Assert.True(seen[0] && seen[1] && seen[2]);
+                Assert.That(seen[0] && seen[1] && seen[2], Is.True);
             }
 
             // Period three: day 3 is back where day 0 started.
-            Assert.Equal(day0[0], day3[0]);
-            Assert.Equal(day0[1], day3[1]);
-            Assert.Equal(day0[2], day3[2]);
+            Assert.That(day3[0], Is.EqualTo(day0[0]));
+            Assert.That(day3[1], Is.EqualTo(day0[1]));
+            Assert.That(day3[2], Is.EqualTo(day0[2]));
         }
 
-        [Fact]
+        [Test]
         public void RotationHappensAtLocalMidnightNotUtcMidnight()
         {
             LightingController lighting = new LightingController(new Setpoints(), 3);
@@ -101,10 +101,10 @@ namespace Formicarium.Controller.Tests
             lighting.Update(Rates(1, 1, 1), afterLocalMidnight);
             int[] after = Snapshot(lighting.ChannelForRiser);
 
-            Assert.NotEqual(before[0], after[0]);
+            Assert.That(after[0], Is.Not.EqualTo(before[0]));
         }
 
-        [Fact]
+        [Test]
         public void OffModeIsGenuinelyDark()
         {
             LightingController lighting = new LightingController(new Setpoints(), 3);
@@ -115,11 +115,11 @@ namespace Formicarium.Controller.Tests
             // The dark baseline has to be actually dark, or the control condition is worthless.
             foreach (RgbColor color in colors)
             {
-                Assert.True(color.IsBlack);
+                Assert.That(color.IsBlack, Is.True);
             }
         }
 
-        [Fact]
+        [Test]
         public void FixedModeLightsAllRisersEquallyRegardlessOfTraffic()
         {
             LightingController lighting = new LightingController(new Setpoints(), 3);
@@ -131,15 +131,15 @@ namespace Formicarium.Controller.Tests
             // "ants respond to colour" from "ants respond to light changing at all".
             foreach (RgbColor color in colors)
             {
-                Assert.False(color.IsBlack);
+                Assert.That(color.IsBlack, Is.False);
             }
 
             double[] brightness = lighting.BrightnessFraction;
-            Assert.Equal(brightness[0], brightness[1], 6);
-            Assert.Equal(brightness[1], brightness[2], 6);
+            Assert.That(brightness[1], Is.EqualTo(brightness[0]).Within(5e-7));
+            Assert.That(brightness[2], Is.EqualTo(brightness[1]).Within(5e-7));
         }
 
-        [Fact]
+        [Test]
         public void ClosedLoopBrightnessTracksThatRisersOwnTraffic()
         {
             LightingController lighting = new LightingController(new Setpoints(), 3);
@@ -150,12 +150,12 @@ namespace Formicarium.Controller.Tests
             lighting.Update(Rates(0, 4, 9), Midday);
             double[] brightness = lighting.BrightnessFraction;
 
-            Assert.Equal(0.0, brightness[0], 6);
-            Assert.True(brightness[1] > brightness[0]);
-            Assert.True(brightness[2] > brightness[1]);
+            Assert.That(brightness[0], Is.EqualTo(0.0).Within(5e-7));
+            Assert.That(brightness[1] > brightness[0], Is.True);
+            Assert.That(brightness[2] > brightness[1], Is.True);
         }
 
-        [Fact]
+        [Test]
         public void BrightnessIsLinearInTrafficSoTheStimulusSpansItsRange()
         {
             Setpoints setpoints = new Setpoints();
@@ -171,10 +171,10 @@ namespace Formicarium.Controller.Tests
             // experiment applied no stimulus at all. Running the simulator is what caught it.
             lighting.Update(Rates(setpoints.LightFullScaleBreaksPerMinute / 2.0, 0, 0), Midday);
 
-            Assert.Equal(0.5, lighting.BrightnessFraction[0], 6);
+            Assert.That(lighting.BrightnessFraction[0], Is.EqualTo(0.5).Within(5e-7));
         }
 
-        [Fact]
+        [Test]
         public void FullScaleIsAPerTubeRateNotAColonyTotal()
         {
             Setpoints setpoints = new Setpoints();
@@ -182,19 +182,17 @@ namespace Formicarium.Controller.Tests
             // A Tetramorium colony at peak foraging runs on the order of ten crossings a minute
             // through its favoured tube. If full scale were set to a colony-wide figure the rings
             // would sit near dark at every realistic activity level.
-            Assert.True(
-                setpoints.LightFullScaleBreaksPerMinute <= 20.0,
-                "full scale of " + setpoints.LightFullScaleBreaksPerMinute + "/min per tube is implausibly high");
+            Assert.That(setpoints.LightFullScaleBreaksPerMinute <= 20.0, Is.True, "full scale of " + setpoints.LightFullScaleBreaksPerMinute + "/min per tube is implausibly high");
 
             LightingController lighting = new LightingController(setpoints, 3);
             lighting.Mode = LightingMode.ClosedLoop;
             lighting.Update(Rates(10.0, 4.0, 1.0), Midday);
 
             // A busy tube at realistic traffic should be well up its range, not a rounding error.
-            Assert.True(lighting.BrightnessFraction[0] > 0.5);
+            Assert.That(lighting.BrightnessFraction[0] > 0.5, Is.True);
         }
 
-            [Fact]
+            [Test]
         public void TrafficAboveFullScaleSaturatesRatherThanOverflowing()
         {
             Setpoints setpoints = new Setpoints();
@@ -204,15 +202,15 @@ namespace Formicarium.Controller.Tests
             RgbColor[] colors = lighting.Update(
                 Rates(setpoints.LightFullScaleBreaksPerMinute * 100.0, 0, 0), Midday);
 
-            Assert.Equal(1.0, lighting.BrightnessFraction[0], 6);
+            Assert.That(lighting.BrightnessFraction[0], Is.EqualTo(1.0).Within(5e-7));
 
             // A byte cast on an unclamped value would have wrapped to near-black at some
             // multiple of full scale, which would look exactly like a quiet colony.
             int brightest = Math.Max(colors[0].R, Math.Max(colors[0].G, colors[0].B));
-            Assert.Equal(setpoints.LightMaxBrightness, brightest);
+            Assert.That(brightest, Is.EqualTo(setpoints.LightMaxBrightness));
         }
 
-        [Fact]
+        [Test]
         public void CurfewOverridesEveryModeSoTheColonyAlwaysGetsANight()
         {
             LightingController lighting = new LightingController(new Setpoints(), 3);
@@ -223,15 +221,15 @@ namespace Formicarium.Controller.Tests
 
             RgbColor[] colors = lighting.Update(Rates(30, 30, 30), night);
 
-            Assert.True(lighting.InCurfew);
+            Assert.That(lighting.InCurfew, Is.True);
 
             foreach (RgbColor color in colors)
             {
-                Assert.True(color.IsBlack);
+                Assert.That(color.IsBlack, Is.True);
             }
         }
 
-        [Fact]
+        [Test]
         public void ChannelAssignmentStillAdvancesDuringCurfew()
         {
             LightingController lighting = new LightingController(new Setpoints(), 3);
@@ -241,8 +239,8 @@ namespace Formicarium.Controller.Tests
             DateTime night = new DateTime(2026, 6, 2, 4, 0, 0);
             lighting.Update(Rates(0, 0, 0), night);
 
-            Assert.True(lighting.InCurfew);
-            Assert.NotEqual(0, lighting.AssignmentDayNumber);
+            Assert.That(lighting.InCurfew, Is.True);
+            Assert.That(lighting.AssignmentDayNumber, Is.Not.EqualTo(0));
         }
     }
 }

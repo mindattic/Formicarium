@@ -84,7 +84,7 @@ To use real hardware, set `Controller:UseSimulator` to `false` and point `Contro
 firmware/Formicarium.Controller/Core/   Actuation, Config, Control, Sensing, State
         |                 (no LINQ, no generic collections: nanoFramework BCL only)
         +--> Formicarium.Controller.nfproj      direct Compile Include   ships to the ESP32
-        +--> Formicarium.Controller.Tests       linked sources, xUnit    proves the logic
+        +--> Formicarium.Controller.Tests       linked sources, NUnit    proves the logic
         +--> Formicarium.Dashboard              linked sources           simulator drives the real ControlLoop
 
 Hardware/  Esp32SensorSet, Esp32ActuatorSet      the only code that knows what a GPIO is
