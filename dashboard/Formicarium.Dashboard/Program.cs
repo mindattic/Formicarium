@@ -1,3 +1,4 @@
+using Formicarium.Dashboard;
 using Formicarium.Dashboard.Components;
 using Formicarium.Dashboard.Data;
 using Formicarium.Dashboard.Services;
@@ -5,13 +6,20 @@ using Microsoft.EntityFrameworkCore;
 using MindAttic.Log.Extensions;
 using MindAttic.Vault.Paths;
 
+if (MindAttic.Vault.Settings.Manifest.SettingsManifestCommand.TryRun<FormicariumSettings>(args)) return;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-var connectionString = builder.Configuration.GetConnectionString("Formicarium")
-                        ?? throw new InvalidOperationException("ConnectionStrings:Formicarium must be set.");
+// Settings are edited in MindAttic.Vault.Desktop (Formicarium tab); the old appsettings.json keys are imported once.
+var settings = FormicariumSettings.Load(builder.Configuration);
+builder.Services.AddSingleton(settings);
+
+var connectionString = settings.DatabaseConnection;
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("Set the Formicarium database connection in MindAttic Vault (Formicarium tab).");
 
 builder.Services.AddDbContextFactory<FormicariumDbContext>(options => options.UseSqlServer(connectionString));
 
@@ -31,29 +39,9 @@ builder.Services.AddSingleton<TelemetryStore>();
 builder.Services.AddSingleton<BuildProgressStore>();
 
 // Simulator by default, because nothing has been ordered yet and a dashboard that only works
-// once hardware exists cannot be developed against. Point Controller:BaseAddress at the ESP32
-// and set Controller:UseSimulator to false to switch over; nothing else changes.
-var useSimulator = builder.Configuration.GetValue("Controller:UseSimulator", true);
-
-if (useSimulator)
-{
-    builder.Services.AddSingleton<IFormicariumClient, FakeFormicariumClient>();
-}
-else
-{
-    var baseAddress = builder.Configuration["Controller:BaseAddress"]
-                      ?? throw new InvalidOperationException(
-                          "Controller:BaseAddress must be set when Controller:UseSimulator is false.");
-
-    builder.Services.AddHttpClient<IFormicariumClient, HttpFormicariumClient>(http =>
-    {
-        http.BaseAddress = new Uri(baseAddress);
-
-        // Short, because the control loop matters more than this request does. A wedged HTTP
-        // call must not pile up behind the poller.
-        http.Timeout = TimeSpan.FromSeconds(4);
-    });
-}
+// once hardware exists cannot be developed against. Turn the simulator off and set the ESP32
+// address in Vault to switch over; nothing else changes.
+settings.AddControllerClient(builder.Services);
 
 builder.Services.AddSingleton<ColonyMonitor>();
 builder.Services.AddHostedService(services => services.GetRequiredService<ColonyMonitor>());

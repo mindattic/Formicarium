@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/dashboard/">
     <Project Path="dashboard/Formicarium.Dashboard/Formicarium.Dashboard.csproj" />
+    <Project Path="dashboard/Formicarium.Dashboard.Tests/Formicarium.Dashboard.Tests.csproj" />
   </Folder>
   <Folder Name="/firmware/">
     <Project Path="firmware/Formicarium.Controller.Tests/Formicarium.Controller.Tests.csproj" />

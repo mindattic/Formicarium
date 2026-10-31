@@ -1,6 +1,6 @@
 @page "/camera"
 @rendermode InteractiveServer
-@inject IConfiguration Configuration
+@inject FormicariumSettings Settings
 
 <PageTitle>Formicarium — Camera</PageTitle>
 
@@ -9,8 +9,15 @@
 @if (string.IsNullOrWhiteSpace(StreamUrl))
 {
     <p class="lede">
-        No camera configured. Set <code>Camera:StreamUrl</code> in <code>appsettings.json</code> to the
-        MJPEG or snapshot URL of the IR-capable IP camera.
+        No camera configured. Set the stream URL (the MJPEG or snapshot URL of the IR-capable IP camera)
+        in MindAttic Vault, then restart the dashboard.
+    </p>
+    <p>
+        <button class="btn" @onclick="OpenCameraSetting">Open camera settings</button>
+        @if (vaultMissing)
+        {
+            <span> MindAttic Vault isn't installed here; <a href="@CameraSettingLink">open it from this link</a> on the PC that has it.</span>
+        }
     </p>
 
     <div class="chart">
@@ -37,5 +44,13 @@ else
 }
 
 @code {
-    private string? StreamUrl => Configuration["Camera:StreamUrl"];
+    public const string StreamUrlSetting = "MindAttic:Settings:Formicarium:camera:streamUrl";
+    private bool vaultMissing;
+
+    private string? StreamUrl => Settings.Camera.StreamUrl;
+    private static string CameraSettingLink => MindAttic.Vault.Launch.VaultSettings.Link(FormicariumSettings.AppId, StreamUrlSetting);
+
+    // Runs server-side, on the PC hosting the dashboard, so it opens Vault.Desktop there over its local pipe.
+    private void OpenCameraSetting() =>
+        vaultMissing = !MindAttic.Vault.Launch.VaultSettings.Open(FormicariumSettings.AppId, StreamUrlSetting);
 }
