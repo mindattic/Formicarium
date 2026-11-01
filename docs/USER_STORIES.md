@@ -43,3 +43,5 @@ _Nothing recorded yet._
 | FOR-T20 | 2026-10-20 | docs | open | Publish Formicarium docs to GitHub Pages via the shared Agency DocFX pipeline: run adopt-docs-site.ps1 (README.md as home page, docs/*.md as articles, API reference only where the code builds in CI), enable Pages with build_type=workflow, set the repo homepage URL, retire tools/build-readme.ps1 and README.htm, confirm the docs Actions run is green and https://mindattic.github.io/Formicarium/ returns 200. Depends on MAT-T8. | — |
 | FOR-T21 | 2026-10-22 | docs | closed | Update USER_STORIES.md | — |
 | FOR-T22 | 2026-10-24 | docs | closed | Update USER_STORIES.md | — |
+| FOR-T23 | 2026-10-31 | feature | closed | LAMP: move Formicarium Dashboard's app-level settings and keys to MindAttic.Vault.Desktop (manifest, LoadOrSeed, shared named keys, cog opens Vault) | 979ab16 LampSettingsTests (8/8) + controller suite 89/89 |
+| FOR-T24 | 2026-10-31 | docs | closed | Update USER_STORIES.md | — |
