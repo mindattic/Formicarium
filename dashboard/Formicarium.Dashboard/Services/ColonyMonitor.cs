@@ -72,6 +72,10 @@ public sealed class ColonyMonitor(
             {
                 logger.LogError(ex, "Poll failed");
                 Unreachable = true;
+
+                // Without this the open pages keep showing "Live" after a poll that threw (a
+                // malformed response, say), because only the success/null path told them.
+                Updated?.Invoke();
             }
 
             try

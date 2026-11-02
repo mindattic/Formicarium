@@ -128,6 +128,17 @@ namespace Formicarium.Core.Control
             return true;
         }
 
+        /// <summary>
+        /// Ends a refill run because the outputs were forced off (service mode), not because it
+        /// timed out. Without this the run's clock keeps counting while the pump is held off, and
+        /// leaving service mode either resumes a run with its budget already spent or latches a
+        /// false refill-cutoff fault that counts toward the supply-empty alarm.
+        /// </summary>
+        public void Abort(DateTime nowUtc)
+        {
+            Stop(nowUtc, false);
+        }
+
         /// <summary>Clears the latched refill and supply faults once a human has refilled or investigated.</summary>
         public void Acknowledge()
         {

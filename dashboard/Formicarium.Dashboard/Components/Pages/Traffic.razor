@@ -52,7 +52,7 @@ else
                     </span>
                 </div>
                 <div class="meter" style="height:8px;background:#241f1b;border-radius:2px;overflow:hidden">
-                    <i style="display:block;height:100%;width:@((total.Crossings * 100.0 / max).ToString("0.0"))%;background:@Channels.Css(total.Channel)"></i>
+                    <i style="display:block;height:100%;width:@((total.Crossings * 100.0 / max).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))%;background:@Channels.Css(total.Channel)"></i>
                 </div>
             </div>
         }

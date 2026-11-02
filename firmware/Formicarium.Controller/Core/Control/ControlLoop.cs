@@ -28,6 +28,7 @@ namespace Formicarium.Core.Control
         private readonly FeedScheduler _feed;
         private readonly LightingController _lighting;
         private readonly RgbColor[] _darkness;
+        private readonly double[] _darknessBrightness;
         private readonly DateTime _bootUtc;
 
         private bool _hasSeenAnyValidReading;
@@ -81,6 +82,7 @@ namespace Formicarium.Core.Control
             _lighting = new LightingController(setpoints, riserCount);
 
             _darkness = new RgbColor[riserCount];
+            _darknessBrightness = new double[riserCount];
 
             // Boot state is everything off. The gate pulldowns hold the MOSFETs off through
             // reset before this line runs; this makes it true in software too.
@@ -131,6 +133,7 @@ namespace Formicarium.Core.Control
             bool nestFanOn;
             bool feedOn;
             RgbColor[] colors;
+            double[] brightness;
 
             // Two conditions stop everything outright. Service mode is a human asking; the
             // other is the controller admitting it has never successfully read a single sensor,
@@ -143,6 +146,14 @@ namespace Formicarium.Core.Control
                 refillOn = false;
                 feedOn = false;
                 colors = _darkness;
+
+                // The rings are dark here, so the logged stimulus must be zero too rather than
+                // whatever the lighting controller computed on its last lit tick.
+                brightness = _darknessBrightness;
+
+                // The pump is held off, so a refill run in progress has ended; leaving its timer
+                // running would turn a service visit into a false refill-cutoff fault.
+                _hydration.Abort(nowUtc);
                 _actuators.AllOff();
             }
             else
@@ -161,6 +172,7 @@ namespace Formicarium.Core.Control
                 nestFanOn = _nestFan.Update(snapshot.NestHumidityPct, nowUtc);
                 feedOn = _feed.Update(nowUtc);
                 colors = _lighting.Update(snapshot.RiserRatesPerMinute, nowUtc);
+                brightness = _lighting.BrightnessFraction;
 
                 _actuators.SetHeater(heaterOn);
                 _actuators.SetRefillPump(refillOn);
@@ -170,7 +182,7 @@ namespace Formicarium.Core.Control
                 _actuators.SetRiserLights(colors);
             }
 
-            return BuildState(snapshot, nowUtc, faults, heaterOn, refillOn, feedOn, fanOn, nestFanOn);
+            return BuildState(snapshot, nowUtc, faults, heaterOn, refillOn, feedOn, fanOn, nestFanOn, brightness);
         }
 
         /// <summary>Dashboard-triggered sugar-water dose. Rate limited inside the scheduler.</summary>
@@ -192,7 +204,8 @@ namespace Formicarium.Core.Control
             bool refillOn,
             bool feedOn,
             bool fanOn,
-            bool nestFanOn)
+            bool nestFanOn,
+            double[] brightness)
         {
             DeviceState state = new DeviceState();
 
@@ -218,7 +231,7 @@ namespace Formicarium.Core.Control
             state.RiserRatesPerMinute = snapshot.RiserRatesPerMinute;
             state.RiserDebouncedCounts = snapshot.RiserDebouncedCounts;
             state.RiserChannel = _lighting.ChannelForRiser;
-            state.RiserBrightness = _lighting.BrightnessFraction;
+            state.RiserBrightness = brightness;
             state.AssignmentDayNumber = _lighting.AssignmentDayNumber;
             state.LightingMode = (int)_lighting.Mode;
             state.LightCurfewActive = _lighting.InCurfew;

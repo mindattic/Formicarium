@@ -22,6 +22,7 @@ namespace Formicarium.Core.Sensing
         private readonly int[] _buckets;
         private readonly int _windowSeconds;
         private readonly int _debounceMs;
+        private readonly object _sync = new object();
 
         private int _runningSum;
         private long _currentSecond;
@@ -51,7 +52,13 @@ namespace Formicarium.Core.Sensing
 
         public double RatePerMinute
         {
-            get { return _runningSum * 60.0 / _windowSeconds; }
+            get
+            {
+                lock (_sync)
+                {
+                    return _runningSum * 60.0 / _windowSeconds;
+                }
+            }
         }
 
         /// <summary>
@@ -60,20 +67,26 @@ namespace Formicarium.Core.Sensing
         /// </summary>
         public bool RecordBreak(DateTime nowUtc)
         {
-            if (_hasAccepted && (nowUtc - _lastAcceptedUtc).TotalMilliseconds < _debounceMs)
+            // On device this runs on the GPIO event thread while Tick runs on the control loop
+            // thread; both mutate the buckets and the running sum, and an interleaved
+            // read-modify-write would permanently skew the rate.
+            lock (_sync)
             {
-                DebouncedCount++;
-                return false;
+                if (_hasAccepted && (nowUtc - _lastAcceptedUtc).TotalMilliseconds < _debounceMs)
+                {
+                    DebouncedCount++;
+                    return false;
+                }
+
+                Advance(nowUtc);
+
+                _lastAcceptedUtc = nowUtc;
+                _hasAccepted = true;
+                CumulativeCount++;
+                _buckets[_currentIndex]++;
+                _runningSum++;
+                return true;
             }
-
-            Advance(nowUtc);
-
-            _lastAcceptedUtc = nowUtc;
-            _hasAccepted = true;
-            CumulativeCount++;
-            _buckets[_currentIndex]++;
-            _runningSum++;
-            return true;
         }
 
         /// <summary>
@@ -82,7 +95,10 @@ namespace Formicarium.Core.Sensing
         /// </summary>
         public void Tick(DateTime nowUtc)
         {
-            Advance(nowUtc);
+            lock (_sync)
+            {
+                Advance(nowUtc);
+            }
         }
 
         private void Advance(DateTime nowUtc)

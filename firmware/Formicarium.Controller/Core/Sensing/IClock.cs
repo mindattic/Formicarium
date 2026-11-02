@@ -31,6 +31,15 @@ namespace Formicarium.Core.Sensing
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1);
 
+        /// <summary>
+        /// False while the device clock still sits near its power-on epoch because SNTP has not
+        /// landed. Wall-clock-scheduled actions must not run against such a clock.
+        /// </summary>
+        public static bool IsWallClockSet(DateTime utcNow)
+        {
+            return utcNow.Year > 2020;
+        }
+
         public static DateTime FromUtc(DateTime utcNow, int utcOffsetMinutes)
         {
             return utcNow.AddMinutes(utcOffsetMinutes);

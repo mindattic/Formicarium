@@ -1,3 +1,4 @@
+@implements IDisposable
 @inject ColonyMonitor Monitor
 @inject IFormicariumClient Client
 
@@ -43,6 +44,14 @@
 </div>
 
 @code {
+    // A parameterless child is never re-rendered by its parent's StateHasChanged, so without its
+    // own subscription this strip would freeze at its first render and never show "Lost contact".
+    protected override void OnInitialized() => Monitor.Updated += OnUpdated;
+
+    public void Dispose() => Monitor.Updated -= OnUpdated;
+
+    private void OnUpdated() => InvokeAsync(StateHasChanged);
+
     private static string Uptime(long seconds)
     {
         var span = TimeSpan.FromSeconds(seconds);

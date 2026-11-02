@@ -53,6 +53,15 @@ namespace Formicarium.Core.Control
                 return true;
             }
 
+            // No scheduled dose against an unset clock. Program runs the loop headless when SNTP
+            // has not landed, and the clock can jump to real time later; if the first pass below
+            // had already run on the epoch date, that jump would look like a fresh, due day and
+            // dose immediately - the reboot-double-dose the first-pass rule exists to prevent.
+            if (!LocalTime.IsWallClockSet(nowUtc))
+            {
+                return false;
+            }
+
             DateTime local = LocalTime.FromUtc(nowUtc, _setpoints.UtcOffsetMinutes);
             int today = LocalTime.DayNumber(nowUtc, _setpoints.UtcOffsetMinutes);
 

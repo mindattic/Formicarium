@@ -1,6 +1,7 @@
 @page "/history"
 @rendermode InteractiveServer
 @inject TelemetryStore Store
+@using System.Globalization
 
 <PageTitle>Formicarium — History</PageTitle>
 
@@ -152,15 +153,15 @@ else
             builder.OpenElement(seq++, "line");
             builder.AddAttribute(seq++, "x1", PadLeft);
             builder.AddAttribute(seq++, "x2", Width - PadRight);
-            builder.AddAttribute(seq++, "y1", y.ToString("0.##"));
-            builder.AddAttribute(seq++, "y2", y.ToString("0.##"));
+            builder.AddAttribute(seq++, "y1", y.ToString("0.##", CultureInfo.InvariantCulture));
+            builder.AddAttribute(seq++, "y2", y.ToString("0.##", CultureInfo.InvariantCulture));
             builder.AddAttribute(seq++, "stroke", "#2a2520");
             builder.AddAttribute(seq++, "stroke-width", "1");
             builder.CloseElement();
 
             builder.OpenElement(seq++, "text");
             builder.AddAttribute(seq++, "x", PadLeft - 8);
-            builder.AddAttribute(seq++, "y", (y + 4).ToString("0.##"));
+            builder.AddAttribute(seq++, "y", (y + 4).ToString("0.##", CultureInfo.InvariantCulture));
             builder.AddAttribute(seq++, "fill", "#6b625a");
             builder.AddAttribute(seq++, "font-size", "11");
             builder.AddAttribute(seq++, "text-anchor", "end");
@@ -194,7 +195,7 @@ else
             {
                 if (s.Values[i] is { } value)
                 {
-                    run.Add($"{X(i):0.##},{Y(value):0.##}");
+                    run.Add(string.Create(CultureInfo.InvariantCulture, $"{X(i):0.##},{Y(value):0.##}"));
                 }
                 else
                 {
