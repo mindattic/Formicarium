@@ -220,6 +220,28 @@ namespace Formicarium.Controller.Tests
         }
 
         [Test]
+        public void SmallWetOvershootReadsAsFullyWetAndRaisesOverWet()
+        {
+            HydrationController hydration = new HydrationController(new Setpoints());
+
+            // A probe a little wetter than its calibration point reads ~104 %. That is fully
+            // wet, not implausible, so over-wet detection must still fire.
+            Assert.That(SoilMoisture.ClampCalibrationOvershoot(104.0), Is.EqualTo(100.0));
+            hydration.Update(Full, Soil(SoilMoisture.ClampCalibrationOvershoot(104.0), T0), T0);
+
+            Assert.That(hydration.SubstrateOverWet, Is.True);
+        }
+
+        [Test]
+        public void LargeOvershootAndNegativeReadingsStayImplausible()
+        {
+            Assert.That(SoilMoisture.ClampCalibrationOvershoot(110.0), Is.EqualTo(100.0));
+            Assert.That(SoilMoisture.ClampCalibrationOvershoot(110.5), Is.EqualTo(110.5));
+            Assert.That(SoilMoisture.ClampCalibrationOvershoot(-3.0), Is.EqualTo(-3.0));
+            Assert.That(SoilMoisture.ClampCalibrationOvershoot(55.0), Is.EqualTo(55.0));
+        }
+
+        [Test]
         public void AcknowledgingClearsTheLatchedFaults()
         {
             Setpoints setpoints = new Setpoints();

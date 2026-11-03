@@ -101,10 +101,11 @@ The tests exist to prove these:
 2. Fail-safe is off, not hold, and it bypasses the dwell timer. A heater held on because it "has not been on long enough to turn off" is the bug that ordering prevents.
 3. The over-temperature cutout reads every nest probe, not just the heater's control probe, so one sensor failing low cannot cook the colony while a second watches.
 4. There is no maximum-mist-runtime rule to get wrong, because the pump never touches the nest. It fills a 131 mL reservoir that is smaller than a harmful dose. The guarantee lives in the geometry, where an electrical fault cannot reach it.
-5. Hydration keys off the reservoir float switch, not the soil probe, so a dead probe degrades to "passively hydrated, unmonitored" instead of stopping watering.
+5. Hydration keys off the reservoir float switch, not the soil probe, so a dead probe degrades to "passively hydrated, unmonitored" instead of stopping watering. A probe reading slightly over its wet calibration (up to 110 %) counts as 100 % so over-wet detection still works; anything further out is treated as a bad probe.
 6. There is no gate. A servo that jams closed starves the colony unattended, and no firmware can tell a closed gate from a stuck one.
 7. Boot state is every output off, and nothing energises until some sensor has read successfully.
 8. The two fans watch different zones. The nest exhaust is gated on nest humidity and set high, because it is a mould guard, not a climate control.
+9. No scheduled sugar-water dose runs until the wall clock is set (SNTP). The first pass on a set clock treats a slot already gone by today as served, so a late clock jump or a reboot never doses twice. Manual doses from the dashboard still work, rate limited.
 
 ## The experiment
 

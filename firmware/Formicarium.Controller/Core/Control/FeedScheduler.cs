@@ -12,6 +12,11 @@ namespace Formicarium.Core.Control
     /// number rather than an elapsed-time counter, so a controller reboot does not produce a
     /// second breakfast.
     ///
+    /// Without a wall clock (SNTP has not landed yet) there is no scheduled dose at all: the
+    /// colony simply misses breakfast until the clock is set, which is the safe direction for a
+    /// small dish. Once it is set, the first-pass rule below treats a slot that already went by
+    /// today as served, so a late clock jump cannot dose immediately. Manual doses still work.
+    ///
     /// Protein feeding stays manual by design — fruit flies are not worth automating, and a
     /// jammed protein feeder would rot in the dish.
     /// </summary>

@@ -198,7 +198,8 @@ namespace Formicarium.Controller.Hardware
 
                 double percent = (_soilCountsDry - counts) * 100.0 / span;
 
-                return Reading.Good(percent, nowUtc);
+                // A probe slightly past the wet calibration point is fully wet, not implausible.
+                return Reading.Good(SoilMoisture.ClampCalibrationOvershoot(percent), nowUtc);
             }
             catch
             {

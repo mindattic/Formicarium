@@ -38,6 +38,7 @@
     <Compile Include="Core\Sensing\Reading.cs" />
     <Compile Include="Core\Sensing\RiserTrafficCounter.cs" />
     <Compile Include="Core\Sensing\SensorSnapshot.cs" />
+    <Compile Include="Core\Sensing\SoilMoisture.cs" />
     <Compile Include="Core\State\DeviceState.cs" />
     <!-- Hardware-facing. Nothing above this line knows what a GPIO is. -->
     <Compile Include="Config\DeviceConfig.cs" />
