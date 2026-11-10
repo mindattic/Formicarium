@@ -45,3 +45,7 @@ _Nothing recorded yet._
 | FOR-T22 | 2026-10-24 | docs | closed | Update USER_STORIES.md | — |
 | FOR-T23 | 2026-10-31 | feature | closed | LAMP: move Formicarium Dashboard's app-level settings and keys to MindAttic.Vault.Desktop (manifest, LoadOrSeed, shared named keys, cog opens Vault) | 979ab16 LampSettingsTests (8/8) + controller suite 89/89 |
 | FOR-T24 | 2026-10-31 | docs | closed | Update USER_STORIES.md | — |
+| FOR-T25 | 2026-11-02 | docs | open | Adopt MindAttic.Agency docs-site pipeline, publish README to GitHub Pages (HOUSE-LAW-14) | — |
+| FOR-T26 | 2026-11-02 | fix | closed | Bughunt sweep, two passes: find and fix real bugs across tracked source (user request 2026-11-02) | — |
+| FOR-T27 | 2026-11-02 | fix | closed | Fix the open items the 2026-11-02 bughunt left for decision (soil moisture small-overshoot clamp, document feed-without-clock behaviour) | — |
+| FOR-T28 | 2026-11-10 | chore | closed | Crash recovery: commit the command-catalog sync (.agent/commands/*.md) and regenerated docs/USER_STORIES.md left uncommitted by the session crash | — |
