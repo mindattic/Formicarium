@@ -21,7 +21,7 @@ var connectionString = settings.DatabaseConnection;
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Set the Formicarium database connection in MindAttic Vault (Formicarium tab).");
 
-builder.Services.AddDbContextFactory<FormicariumDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContextFactory<FormicariumDbContext>(options => options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
 
 // Phase 2 (MindAttic.Log 3.0.0, see its docs/BIBLE.md §1.1): logs now live in their own standalone
 // MindAttic.Log.db under Vault's shared roaming root, not FormicariumDbContext's SQL Server

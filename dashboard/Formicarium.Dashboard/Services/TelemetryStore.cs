@@ -30,69 +30,78 @@ public sealed class TelemetryStore(IDbContextFactory<FormicariumDbContext> conte
 
         try
         {
-            await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            // The retrying execution strategy (Azure SQL serverless resume) refuses a user-started
+            // transaction unless the whole unit runs inside it, so each attempt gets a fresh context and
+            // transaction. Replaying is safe: the sample rows are replaced by key, not appended.
+            await using var strategyContext = await contextFactory.CreateDbContextAsync(cancellationToken);
+            var strategy = strategyContext.Database.CreateExecutionStrategy();
 
-            var existingSample = await context.Samples.FindAsync([state.TimestampUnixMs], cancellationToken);
-            if (existingSample is not null)
+            await strategy.ExecuteAsync(async ct =>
             {
-                context.Samples.Remove(existingSample);
-            }
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
+                await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-            context.Samples.Add(new Sample
-            {
-                Ts = state.TimestampUnixMs,
-                NestBottomC = Nullable(state.NestBottomTempC, state.NestBottomTempOk),
-                NestTopC = Nullable(state.NestTopTempC, state.NestTopTempOk),
-                OutworldC = Nullable(state.OutworldTempC, state.OutworldTempOk),
-                NestRh = Nullable(state.NestHumidityPct, state.NestHumidityOk),
-                OutworldRh = Nullable(state.OutworldHumidityPct, state.OutworldHumidityOk),
-                SoilPct = Nullable(state.SoilMoisturePct, state.SoilMoistureOk),
-                Heater = state.HeaterOn,
-                Refill = state.RefillPumpOn,
-                Feed = state.FeedPumpOn,
-                Fan = state.FanOn,
-                NestFan = state.NestFanOn,
-                Faults = state.Faults,
-                LightingMode = state.LightingMode
-            });
-
-            for (int riser = 0; riser < state.RiserCounts.Length; riser++)
-            {
-                long cumulative = state.RiserCounts[riser];
-                long crossings = 0;
-
-                if (_previousCumulative is not null && riser < _previousCumulative.Length)
+                var existingSample = await context.Samples.FindAsync([state.TimestampUnixMs], ct);
+                if (existingSample is not null)
                 {
-                    // A controller reset restarts the cumulative count at zero, which would
-                    // otherwise show up as a large negative delta and corrupt every total that
-                    // followed. Treat a decrease as a restart and count from zero.
-                    crossings = cumulative >= _previousCumulative[riser]
-                        ? cumulative - _previousCumulative[riser]
-                        : cumulative;
+                    context.Samples.Remove(existingSample);
                 }
 
-                var existingRiserSample = await context.RiserSamples.FindAsync([state.TimestampUnixMs, riser], cancellationToken);
-                if (existingRiserSample is not null)
-                {
-                    context.RiserSamples.Remove(existingRiserSample);
-                }
-
-                context.RiserSamples.Add(new RiserSample
+                context.Samples.Add(new Sample
                 {
                     Ts = state.TimestampUnixMs,
-                    Riser = riser,
-                    Cumulative = cumulative,
-                    Crossings = crossings,
-                    Rate = At(state.RiserRatesPerMinute, riser),
-                    Channel = (int)At(state.RiserChannel, riser),
-                    Brightness = At(state.RiserBrightness, riser),
-                    DayNumber = state.AssignmentDayNumber
+                    NestBottomC = Nullable(state.NestBottomTempC, state.NestBottomTempOk),
+                    NestTopC = Nullable(state.NestTopTempC, state.NestTopTempOk),
+                    OutworldC = Nullable(state.OutworldTempC, state.OutworldTempOk),
+                    NestRh = Nullable(state.NestHumidityPct, state.NestHumidityOk),
+                    OutworldRh = Nullable(state.OutworldHumidityPct, state.OutworldHumidityOk),
+                    SoilPct = Nullable(state.SoilMoisturePct, state.SoilMoistureOk),
+                    Heater = state.HeaterOn,
+                    Refill = state.RefillPumpOn,
+                    Feed = state.FeedPumpOn,
+                    Fan = state.FanOn,
+                    NestFan = state.NestFanOn,
+                    Faults = state.Faults,
+                    LightingMode = state.LightingMode
                 });
-            }
 
-            await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+                for (int riser = 0; riser < state.RiserCounts.Length; riser++)
+                {
+                    long cumulative = state.RiserCounts[riser];
+                    long crossings = 0;
+
+                    if (_previousCumulative is not null && riser < _previousCumulative.Length)
+                    {
+                        // A controller reset restarts the cumulative count at zero, which would
+                        // otherwise show up as a large negative delta and corrupt every total that
+                        // followed. Treat a decrease as a restart and count from zero.
+                        crossings = cumulative >= _previousCumulative[riser]
+                            ? cumulative - _previousCumulative[riser]
+                            : cumulative;
+                    }
+
+                    var existingRiserSample = await context.RiserSamples.FindAsync([state.TimestampUnixMs, riser], ct);
+                    if (existingRiserSample is not null)
+                    {
+                        context.RiserSamples.Remove(existingRiserSample);
+                    }
+
+                    context.RiserSamples.Add(new RiserSample
+                    {
+                        Ts = state.TimestampUnixMs,
+                        Riser = riser,
+                        Cumulative = cumulative,
+                        Crossings = crossings,
+                        Rate = At(state.RiserRatesPerMinute, riser),
+                        Channel = (int)At(state.RiserChannel, riser),
+                        Brightness = At(state.RiserBrightness, riser),
+                        DayNumber = state.AssignmentDayNumber
+                    });
+                }
+
+                await context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+            }, cancellationToken);
 
             _previousCumulative = (long[])state.RiserCounts.Clone();
         }
