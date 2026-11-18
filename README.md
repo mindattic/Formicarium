@@ -74,7 +74,7 @@ dotnet run --project dashboard/Formicarium.Dashboard
 
 The tests run the 58 control-logic tests. The dashboard starts against the simulator, which models thermal, hydration and foraging dynamics at 120x wall-clock, so a full day passes in twelve minutes: long enough to watch the midnight colour rotation and the daily traffic cycle. Open `/build` for the build manual.
 
-To use real hardware, set `Controller:UseSimulator` to `false` and point `Controller:BaseAddress` at the ESP32 in `appsettings.json`; nothing else changes. Telemetry uses the `Formicarium` connection string, which defaults to SQL Server LocalDB.
+To use real hardware, set `Controller:UseSimulator` to `false` and point `Controller:BaseAddress` at the ESP32 in `appsettings.json`; nothing else changes. Telemetry uses the `Formicarium` connection string, which defaults to the `Formicarium` database on `sql-mindattic-f65744.database.windows.net` (Azure SQL), opened with your `az login`; no local SQL Server is needed.
 
 ## How it works
 

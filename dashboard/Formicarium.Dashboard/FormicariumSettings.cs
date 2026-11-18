@@ -21,8 +21,15 @@ public sealed class FormicariumSettings
 
     [Setting("Database", Group = "Storage", Order = 3,
         Help = "SQL Server connection string for telemetry and build progress.", NotSecret = true)]
-    public string DatabaseConnection { get; set; } =
-        @"Server=(localdb)\MSSQLLocalDB;Database=Formicarium;Trusted_Connection=True;TrustServerCertificate=True";
+    public string DatabaseConnection { get; set; } = DefaultDatabaseConnection;
+
+    /// <summary>
+    /// The default database: <c>Formicarium</c> on the MindAttic Azure SQL server, opened with the
+    /// developer's own <c>az login</c> (no secret in the string, no local SQL Server).
+    /// </summary>
+    public const string DefaultDatabaseConnection =
+        "Server=tcp:sql-mindattic-f65744.database.windows.net,1433;Database=Formicarium;" +
+        "Authentication=Active Directory Default;Encrypt=True;Connect Timeout=60;MultipleActiveResultSets=True;";
 
     public sealed class ControllerSettings
     {

@@ -115,7 +115,7 @@ public class LampSettingsTests
     {
         var s = FormicariumSettings.Load(Legacy(new()));
         Assert.That((s.Controller.UseSimulator, s.Controller.BaseAddress, s.Camera.StreamUrl), Is.EqualTo((true, "http://formicarium.local", "")));
-        Assert.That(s.DatabaseConnection, Does.Contain("MSSQLLocalDB"));
+        Assert.That(s.DatabaseConnection, Is.EqualTo(FormicariumSettings.DefaultDatabaseConnection));
         var m = SettingsManifestFile.TryRead(Path.Combine(Folder, SettingsManifest.FileName))!;
         Assert.That(m.AllFields().Where(f => f.Kind != SettingKind.Object).All(f => !string.IsNullOrWhiteSpace(f.Help)), Is.True);
     }
