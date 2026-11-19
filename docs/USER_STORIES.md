@@ -51,3 +51,6 @@ _Nothing recorded yet._
 | FOR-T28 | 2026-11-10 | chore | closed | Crash recovery: commit the command-catalog sync (.agent/commands/*.md) and regenerated docs/USER_STORIES.md left uncommitted by the session crash | — |
 | FOR-T29 | 2026-11-10 | chore | closed | Adopt the shared docs-site pipeline: turn on GitHub Pages | — |
 | FOR-T30 | 2026-11-17 | docs | closed | Update USER_STORIES.md | — |
+| FOR-T31 | 2026-11-17 | chore | open | Azure SQL migration: connection resiliency and Entra auth so the dashboard runs against the Azure SQL free-offer database | — |
+| FOR-T32 | 2026-11-18 | chore | open | Development defaults point at Azure SQL (sql-mindattic-f65744) instead of LocalDB, so no local SQL Server is needed to develop | — |
+| FOR-T33 | 2026-11-18 | docs | closed | Update USER_STORIES.md | — |
